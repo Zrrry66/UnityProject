@@ -177,7 +177,7 @@
                     "name": "RayToggleRight",
                     "type": "Button",
                     "id": "ad7b56b6-9c36-4e72-86ae-5da90ed7a676",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -195,7 +195,7 @@
                     "name": "GrabRight",
                     "type": "Button",
                     "id": "9692cf83-5615-4ce3-a328-be177f143ca6",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -204,7 +204,7 @@
                     "name": "GrabLeft",
                     "type": "Button",
                     "id": "77581085-4193-488e-910e-d56468d50fde",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -1096,7 +1096,7 @@
                     "name": "Select",
                     "type": "Button",
                     "id": "47e09c96-3790-499a-914f-56611a43863f",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -1318,7 +1318,7 @@
                     "name": "Grab Move",
                     "type": "Button",
                     "id": "f0540bb9-04d1-4675-b25e-ec28dcbe8531",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -1584,7 +1584,7 @@
                     "name": "Select",
                     "type": "Button",
                     "id": "7fed8a43-b4c5-42fc-8b13-3a98775be493",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -2385,7 +2385,7 @@
                     "name": "Q",
                     "type": "Button",
                     "id": "a668fb20-14bb-4bcb-89f9-9be5fd14901a",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false

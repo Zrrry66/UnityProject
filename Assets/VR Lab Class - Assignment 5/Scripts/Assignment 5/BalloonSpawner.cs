@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class BalloonSpawner : MonoBehaviour
 {
+
+     public static BalloonSpawner Instance; // 单例实例
+
     [System.Serializable]
     public class BalloonType
     {
@@ -14,6 +17,10 @@ public class BalloonSpawner : MonoBehaviour
     public Vector3 spawnRange = new Vector3(5f, 2f, 5f); // 生成范围
     public float spawnInterval = 2.0f;
 
+    private void Awake()
+    {
+        Instance = this; // 让 Balloon.cs 访问 spawnRange
+    }
     
     private void Start()
     {
