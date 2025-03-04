@@ -1,4 +1,5 @@
 using Unity.Netcode;
+using UnityEngine;
 
 public class ObjectAccessHandler : NetworkBehaviour
 {
@@ -8,19 +9,28 @@ public class ObjectAccessHandler : NetworkBehaviour
 
     #endregion
 
+    #region MonoBehaviour Calbacks
+
+    private void Start()
+    {
+        
+    }
+
+    #endregion
+
     #region Custom Methods
 
     public bool RequestAccess()
     {
-        return true;
-        
-        /*if (!isGrabbed.Value)
+       /* if (!isGrabbed.Value)
         {
             GrabObjectRpc(NetworkManager.LocalClientId);
             return true;
         }
         return false;
         */
+        return true;
+
     }
 
     public void Release()

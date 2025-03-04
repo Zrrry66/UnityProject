@@ -28,6 +28,7 @@ public class HandCollider : MonoBehaviour
         {
             collidingObject = other.gameObject;
             isColliding = true;
+            Debug.Log ($"set collidingobject to: {collidingObject.name}");
         }
     }
 

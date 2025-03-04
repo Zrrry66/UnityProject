@@ -26,7 +26,7 @@ public class VirtualHand : MonoBehaviour
     private GameObject grabbedObject;
     private Matrix4x4 offsetMatrix;
 
-    private bool canGrab
+    /*private bool canGrab
     {
         get
         {
@@ -35,6 +35,42 @@ public class VirtualHand : MonoBehaviour
             return false;
         }
     }
+    */
+
+    private bool canGrab
+{
+    get
+    {
+        if (handCollider == null)
+        {
+            Debug.LogError("handCollider is null in canGrab!");
+            return false;
+        }
+
+        if (!handCollider.isColliding)
+        {
+            Debug.Log("canGrab = false: handCollider is not colliding with anything.");
+            return false;
+        }
+
+        if (handCollider.collidingObject == null)
+        {
+            Debug.Log("canGrab = false: collidingObject is null.");
+            return false;
+        }
+
+        ObjectAccessHandler accessHandler = handCollider.collidingObject.GetComponent<ObjectAccessHandler>();
+        if (accessHandler == null)
+        {
+            Debug.LogError($"canGrab = false: Object {handCollider.collidingObject.name} is missing ObjectAccessHandler!");
+            return false;
+        }
+
+        bool accessGranted = accessHandler.RequestAccess();
+
+        return accessGranted;
+    }
+}
 
     #endregion
 
@@ -42,7 +78,10 @@ public class VirtualHand : MonoBehaviour
 
     private void Start()
     {
-        if (!GetComponentInParent<NetworkObject>().IsOwner)
+        bool isOwner = GetComponentInParent<NetworkObject>().IsOwner;
+    Debug.Log($"VirtualHand Start - IsOwner: {isOwner}");
+
+        if (!isOwner)
         {
             Destroy(this);
             return;
@@ -75,10 +114,12 @@ public class VirtualHand : MonoBehaviour
 
     #region Custom Methods
 
-    private void SnapGrab()
+    /*private void SnapGrab()
     {
         if (grabAction.action.IsPressed())
         {
+            Debug.Log($"Grab button was pressed");
+            Debug.Log($"Grab action pressed. canGrab: {canGrab}");
             if (grabbedObject == null && canGrab)
             {
                 grabbedObject = handCollider.collidingObject;
@@ -93,6 +134,7 @@ public class VirtualHand : MonoBehaviour
         else if (grabAction.action.WasReleasedThisFrame())
         {
             if(grabbedObject != null)
+          Debug.Log($"Releasing object:{grabbedObject?.name}");
                 grabbedObject.GetComponent<ObjectAccessHandler>().Release();
 
             grabbedObject = null;
@@ -100,6 +142,46 @@ public class VirtualHand : MonoBehaviour
 
         Debug.Log($"Grabbing object:{grabbedObject?.name}");
     }
+    */
+   private void SnapGrab()
+{
+    if (grabAction.action.IsPressed())
+    {
+        if (grabbedObject == null && canGrab)
+        {
+            grabbedObject = handCollider.collidingObject;
+            
+            // Spawn new Dart
+            DartSpawner spawner = FindObjectOfType<DartSpawner>();
+            if (spawner != null && grabbedObject.CompareTag("Dart"))
+            {
+                spawner.SpawnNewDart();
+            }
+        }
+
+        if (grabbedObject != null)
+        {
+            grabbedObject.transform.position = transform.position;
+            Quaternion offsetRotation = Quaternion.Euler(0,180,0);
+            grabbedObject.transform.rotation = transform.rotation * offsetRotation;
+        }
+    }
+    else if (grabAction.action.WasReleasedThisFrame())
+    {
+        if (grabbedObject != null)
+        {
+            var dartThrow = grabbedObject.GetComponent<DartThrow>();
+            if (dartThrow != null)
+            {
+                dartThrow.OnReleased(transform);
+            }
+
+            grabbedObject.GetComponent<ObjectAccessHandler>().Release();
+        }
+
+        grabbedObject = null;
+    }
+}
 
     private void ReparentingGrab()
     {
@@ -115,6 +197,7 @@ public class VirtualHand : MonoBehaviour
         {
             if (grabbedObject != null)
             {
+ 
                 grabbedObject.GetComponent<ObjectAccessHandler>().Release();
                 grabbedObject.transform.SetParent(null, true);
             }
