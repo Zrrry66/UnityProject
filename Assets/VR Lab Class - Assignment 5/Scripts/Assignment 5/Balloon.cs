@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class Balloon : MonoBehaviour
 {
@@ -65,6 +66,7 @@ public class Balloon : MonoBehaviour
         }
     }
 
+
     private void Explode()
     {
         // Instantiate explosion effect at balloon's position
@@ -79,6 +81,9 @@ public class Balloon : MonoBehaviour
                 var mainModule = particleSystem.main;
                 mainModule.startColor = balloonColor;
             }
+
+            // Destroy the explosion effect after some time to clean up
+            Destroy(explosion, 2f);
         }
 
         // Display the score
@@ -94,12 +99,23 @@ public class Balloon : MonoBehaviour
         {
             // Instantiate the score text at the balloon's position
             GameObject scoreText = Instantiate(scoreTextPrefab, transform.position, Quaternion.identity);
-            scoreText.GetComponent<TextMesh>().text = scoreValue.ToString();
+            
+            // Retrieve and set TMP_Text instead of TextMesh
+            TMP_Text textMeshPro = scoreText.GetComponent<TMP_Text>();
+            if (textMeshPro != null)
+            {
+                textMeshPro.text = scoreValue.ToString();
+            }
+            else
+            {
+                Debug.LogError("TMP_Text component is missing on " + scoreText.name);
+            }
 
             // Destroy the score text after 2 seconds
             Destroy(scoreText, 2f);
         }
     }
+
 }
 
 /*

@@ -3,7 +3,7 @@ using UnityEngine;
 public class BalloonSpawner : MonoBehaviour
 {
 
-     public static BalloonSpawner Instance; // 单例实例
+     public static BalloonSpawner Instance;
 
     [System.Serializable]
     public class BalloonType
@@ -13,13 +13,13 @@ public class BalloonSpawner : MonoBehaviour
     }
 
     public BalloonType[] balloonTypes;
-    public Transform spawnArea; // 生成区域的中心点
-    public Vector3 spawnRange = new Vector3(5f, 2f, 5f); // 生成范围
+    public Transform spawnArea; // Center of the sapwn area
+    public Vector3 spawnRange = new Vector3(5f, 2f, 5f); // Spawn range
     public float spawnInterval = 2.0f;
 
     private void Awake()
     {
-        Instance = this; // 让 Balloon.cs 访问 spawnRange
+        Instance = this; // let Balloon.cs access spawnRange
     }
     
     private void Start()
@@ -33,7 +33,7 @@ public class BalloonSpawner : MonoBehaviour
 
     Gizmos.color = Color.green;
     Vector3 center = spawnArea.position;
-    Vector3 size = spawnRange * 2; // 生成范围是从中心扩展的
+    Vector3 size = spawnRange * 2; // spawn range spread
 
     Gizmos.DrawWireCube(center, size);
 }
@@ -41,7 +41,7 @@ public class BalloonSpawner : MonoBehaviour
     {
         if (balloonTypes.Length == 0) return;
 
-        // 计算概率权重
+        // Calculate probability
         float totalProbability = 0f;
         foreach (var balloon in balloonTypes)
         {
@@ -64,7 +64,7 @@ public class BalloonSpawner : MonoBehaviour
 
         if (selectedBalloon != null)
         {
-            // 在设定的范围内随机生成位置
+            // Spawn randomly
             Vector3 spawnPosition = new Vector3(
                 Random.Range(spawnArea.position.x - spawnRange.x, spawnArea.position.x + spawnRange.x),
                 spawnArea.position.y,
