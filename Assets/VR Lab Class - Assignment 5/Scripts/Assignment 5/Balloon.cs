@@ -86,6 +86,16 @@ public class Balloon : MonoBehaviour
             Destroy(explosion, 2f);
         }
 
+        // call scoremanager
+        if(ScoreManager.Instance != null)
+        {
+            ScoreManager.Instance.AddScore(scoreValue);
+        }
+        else
+        {
+            Debug.LogError("ScoreManager Instance not found");
+        }
+
         // Display the score
         ShowScore();
 
@@ -111,7 +121,12 @@ public class Balloon : MonoBehaviour
                 Debug.LogError("TMP_Text component is missing on " + scoreText.name);
             }
 
-            // Destroy the score text after 2 seconds
+            // move up the text and rotate
+            Vector3 newPosition = textMeshPro.transform.position + new Vector3 (0f, 0.6f, 0.2f);
+            textMeshPro.transform.position = newPosition;
+
+            textMeshPro.transform.rotation = Quaternion.Euler(0, -90, 0);
+            // Destroy the score text after x seconds
             Destroy(scoreText, 2f);
         }
     }

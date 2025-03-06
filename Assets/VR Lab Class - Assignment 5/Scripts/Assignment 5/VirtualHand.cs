@@ -161,7 +161,10 @@ public class VirtualHand : MonoBehaviour
 
         if (grabbedObject != null)
         {
-            grabbedObject.transform.position = transform.position;
+            //grabbedObject.transform.position = transform.position;
+            Vector3 offset = new Vector3(-0.025f, 0, 0); // Example offset (adjust as needed)
+            grabbedObject.transform.position = transform.position + transform.rotation * offset;
+
             Quaternion offsetRotation = Quaternion.Euler(0,180,0);
             grabbedObject.transform.rotation = transform.rotation * offsetRotation;
         }

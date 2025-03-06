@@ -16,7 +16,7 @@ public class DartThrow : MonoBehaviour
     {
         if (isGrabbed)
         {
-            // 计算速度
+            // Calculate velocity
             velocity = (transform.position - lastPosition) / Time.deltaTime;
             lastPosition = transform.position;
         }
@@ -25,20 +25,20 @@ public class DartThrow : MonoBehaviour
     public void OnGrabbed()
     {
         isGrabbed = true;
-        rb.isKinematic = true; // 关闭物理模拟
+        rb.isKinematic = true;
     }
 
     public void OnReleased(Transform handTransform)
     {
         isGrabbed = false;
-        rb.isKinematic = false; // 开启物理模拟
+        rb.isKinematic = false;
 
         Vector3 throwDirection = transform.forward;
 
-        rb.velocity = throwDirection * velocity.magnitude * 2.5f; // 根据速度计算抛出速度
+        rb.velocity = throwDirection * velocity.magnitude * 2.5f; // Calculte throw velocity
         rb.angularVelocity = Vector3.zero; // keep from rotating
 
-        // 额外向前施加力，确保飞镖飞出
+        // Add extra force to make dart fly
         rb.AddForce(handTransform.forward * 2.0f, ForceMode.Impulse);
 
         rb.AddTorque(Vector3.Cross(transform.forward, rb.velocity).normalized * 10f, ForceMode.Impulse);
