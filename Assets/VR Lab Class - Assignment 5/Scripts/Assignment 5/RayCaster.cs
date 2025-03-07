@@ -36,13 +36,27 @@ public class RayCaster : MonoBehaviour
         lineRenderer.SetPosition(1, rayOrigin.position + rayOrigin.forward * 5f);
 
         // **检查 UI 交互**
-        if (CheckUIRaycast()) return;
+        if (CheckUIRaycast(ray)) return;
+
+        // **如果 UI 没有检测到按钮，则进行物理射线检测**
+        RaycastHit hit;
+        if (Physics.Raycast(ray, out hit, 5f))
+        {
+            if (hit.collider.TryGetComponent<Button>(out Button button))
+            {
+                if (triggerAction.action.WasPressedThisFrame())
+                {
+                    button.onClick.Invoke();
+                    Debug.Log("Clicked Physical Button: " + button.name);
+                }
+            }
+        }
     }
 
-    private bool CheckUIRaycast()
+    private bool CheckUIRaycast(Ray ray)
     {
         PointerEventData eventData = new PointerEventData(EventSystem.current);
-        eventData.position = new Vector2(Screen.width / 2, Screen.height / 2); // 屏幕中心模拟点击位置
+        eventData.position = Camera.main.WorldToScreenPoint(ray.origin + ray.direction * 2f); // **将 VR 射线转换为 UI 坐标**
 
         List<RaycastResult> results = new List<RaycastResult>();
         EventSystem.current.RaycastAll(eventData, results);
@@ -51,7 +65,7 @@ public class RayCaster : MonoBehaviour
         {
             if (result.gameObject.TryGetComponent<Button>(out Button button))
             {
-                if (triggerAction.action.WasPressedThisFrame()) // 现在 `Activate` 触发 UI 按钮点击
+                if (triggerAction.action.WasPressedThisFrame()) // 确保手柄的 Trigger 触发
                 {
                     button.onClick.Invoke();
                     Debug.Log("UI Button Clicked: " + button.name);
@@ -61,6 +75,16 @@ public class RayCaster : MonoBehaviour
         }
         return false;
     }
+
+
+    public void DeactivateRay()
+{
+    isRayActive = false;
+    lineRenderer.enabled = false;
+}
+
+
+
 }
 
 /*using UnityEngine;

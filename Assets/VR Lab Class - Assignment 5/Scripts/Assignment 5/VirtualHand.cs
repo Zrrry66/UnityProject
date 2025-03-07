@@ -114,7 +114,8 @@ public class VirtualHand : MonoBehaviour
 
     #region Custom Methods
 
-    /*private void SnapGrab()
+    /*initial version
+    private void SnapGrab()
     {
         if (grabAction.action.IsPressed())
         {
@@ -143,6 +144,9 @@ public class VirtualHand : MonoBehaviour
         Debug.Log($"Grabbing object:{grabbedObject?.name}");
     }
     */
+   
+   
+   /* this works!!!!
    private void SnapGrab()
 {
     if (grabAction.action.IsPressed())
@@ -185,6 +189,54 @@ public class VirtualHand : MonoBehaviour
         grabbedObject = null;
     }
 }
+*/
+
+private void SnapGrab()
+{
+    if (grabAction.action.IsPressed())
+    {
+        if (grabbedObject == null && canGrab)
+        {
+            grabbedObject = handCollider.collidingObject;
+        }
+
+        if (grabbedObject != null)
+        {
+            grabbedObject.transform.position = transform.position;
+            grabbedObject.transform.rotation = transform.rotation;
+        }
+
+        // **检查是否是枪，并启用射击脚本**
+        if (grabbedObject.CompareTag("Gun"))
+        {
+            Gun gunScript = grabbedObject.GetComponent<Gun>();
+            if (gunScript != null)
+            {
+                gunScript.enabled = true; // 启用射击功能
+            }
+        }
+    }
+    else if (grabAction.action.WasReleasedThisFrame())
+    {
+        if (grabbedObject != null)
+        {
+            grabbedObject.GetComponent<ObjectAccessHandler>().Release();
+        }
+
+        // **释放枪时，禁用射击功能**
+        if (grabbedObject.CompareTag("Gun"))
+        {
+            Gun gunScript = grabbedObject.GetComponent<Gun>();
+            if (gunScript != null)
+            {
+                gunScript.enabled = false;
+            }
+        }
+
+        grabbedObject = null;
+    }
+}
+
 
     private void ReparentingGrab()
     {

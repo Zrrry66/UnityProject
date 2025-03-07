@@ -17,6 +17,8 @@ public class BalloonSpawner : MonoBehaviour
     public Vector3 spawnRange = new Vector3(5f, 2f, 5f); // Spawn range
     public float spawnInterval = 2.0f;
 
+    private bool isSpawning = true; //to control the spawning 
+
     private void Awake()
     {
         Instance = this; // let Balloon.cs access spawnRange
@@ -39,7 +41,7 @@ public class BalloonSpawner : MonoBehaviour
 }
  void SpawnBalloon()
     {
-        if (balloonTypes.Length == 0) return;
+        if (!isSpawning || balloonTypes.Length == 0) return;
 
         // Calculate probability
         float totalProbability = 0f;
@@ -74,4 +76,19 @@ public class BalloonSpawner : MonoBehaviour
             Instantiate(selectedBalloon, spawnPosition, Quaternion.identity);
         }
     }
+
+    public void StopSpawning()
+    {
+        isSpawning = false;
+        CancelInvoke(nameof(SpawnBalloon));  //Stop InvokeRepeating
+    }
+       
+public void StartSpawning()
+{
+    isSpawning = true;
+    CancelInvoke(nameof(SpawnBalloon)); // **防止重复调用**
+    InvokeRepeating(nameof(SpawnBalloon), 1f, spawnInterval);
+}
+
+
 }

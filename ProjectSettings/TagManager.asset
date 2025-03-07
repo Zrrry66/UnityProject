@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Dart
   - Balloon
+  - Gun
   layers:
   - Default
   - TransparentFX
