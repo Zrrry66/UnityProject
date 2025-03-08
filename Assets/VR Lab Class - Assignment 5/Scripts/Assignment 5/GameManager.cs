@@ -5,6 +5,198 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
+    public static GameManager Instance { get; private set; }
+
+    public GameObject startPanel;
+    public GameObject gameOverPanel;
+    public Button startButton;
+    public Button restartButton;
+    public Button exitButton;
+    public CountdownTimer countdownTimer;
+    public GameObject balloonSpawner;
+    public GameObject player; // XR 角色控制
+    public float gameTime = 60f;
+
+    private enum GameState { WaitingToStart, Playing, GameOver }
+    private GameState currentState = GameState.WaitingToStart;
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    void Start()
+    {
+        startButton.onClick.AddListener(StartGame);
+        restartButton.onClick.AddListener(RestartGame);
+        exitButton.onClick.AddListener(ExitGame);
+
+        ShowStartPanel();
+    }
+
+    void ShowStartPanel()
+    {
+        startPanel.SetActive(true);
+        gameOverPanel.SetActive(false);
+        balloonSpawner.SetActive(false); // 确保游戏未开始时气球不生成
+        ScoreManager.Instance.ResetScore();
+        currentState = GameState.WaitingToStart;
+    }
+
+    public void StartGame()
+    {
+        startPanel.SetActive(false);
+        gameOverPanel.SetActive(false);
+        ScoreManager.Instance.ResetScore();
+        countdownTimer.StartTimer(gameTime);
+        currentState = GameState.Playing;
+
+        // **Deactivate ray after clicking on the button**
+        RayCaster raycaster = FindObjectOfType<RayCaster>();
+        if (raycaster != null)
+        {
+            raycaster.DeactivateRay();
+        }
+
+        if (balloonSpawner != null)
+        {
+            balloonSpawner.SetActive(true);
+
+            BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
+            if (spawnerScript != null)
+            {
+                spawnerScript.StartSpawning(); 
+            }
+        }
+
+        if (NetworkManager.Singleton.IsServer)
+        {
+            NetworkManager.Singleton.StartHost();
+        }
+    }
+
+    public void GameOver()
+    {
+        currentState = GameState.GameOver;
+        gameOverPanel.SetActive(true);
+
+        // **Reactivate ray when game ends**
+        RayCaster raycaster = FindObjectOfType<RayCaster>();
+        if (raycaster != null)
+        {
+            raycaster.DeactivateRay(); // Ensure it starts OFF
+            raycaster.enabled = true; // Allow reactivation
+        }
+
+        if (balloonSpawner != null)
+        {
+            balloonSpawner.SetActive(false);
+        }
+
+        Time.timeScale = 0;
+    }
+
+    public void RestartGame()
+    {
+        Time.timeScale = 1;
+
+        // **Deactivate ray after clicking on the button**
+        RayCaster raycaster = FindObjectOfType<RayCaster>();
+        if (raycaster != null)
+        {
+            raycaster.DeactivateRay();
+        }
+
+        if (player != null && player.GetComponent<CharacterController>() != null)
+        {
+            player.GetComponent<CharacterController>().enabled = true;
+        }
+
+        // **Clear existing balloons**
+        ClearBalloons();
+
+        // **Reset game state**
+        ScoreManager.Instance.ResetScore();
+        countdownTimer.StartTimer(gameTime);
+
+        if (balloonSpawner != null)
+        {
+            balloonSpawner.SetActive(true);
+
+            BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
+            if (spawnerScript != null)
+            {
+                spawnerScript.StartSpawning();
+            }
+        }
+
+        gameOverPanel.SetActive(false);
+        currentState = GameState.Playing;
+    }
+
+    public void ExitGame()
+    {
+        ShowStartPanel();
+
+        // **Reactivate ray when returning to menu**
+        RayCaster raycaster = FindObjectOfType<RayCaster>();
+        if (raycaster != null)
+        {
+            raycaster.DeactivateRay();
+            raycaster.enabled = true;
+        }
+
+        if (balloonSpawner != null)
+        {
+            balloonSpawner.SetActive(false);
+
+            BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
+            if (spawnerScript != null)
+            {
+                spawnerScript.StopSpawning();
+            }
+        }
+
+        ClearBalloons();
+        Time.timeScale = 1;
+
+        if (player != null && player.GetComponent<CharacterController>() != null)
+        {
+            player.GetComponent<CharacterController>().enabled = true;
+        }
+    }
+
+    private void ClearBalloons()
+    {
+        GameObject[] balloons = GameObject.FindGameObjectsWithTag("Balloon");
+        foreach (GameObject balloon in balloons)
+        {
+            Destroy(balloon);
+        }
+    }
+
+    // **This function allows other scripts to check if the game is running**
+    public bool IsGameRunning()
+    {
+        return currentState == GameState.Playing;
+    }
+}
+
+/*this works. need to add singleton
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+
+public class GameManager : MonoBehaviour
+{
     public GameObject startPanel;
     public GameObject gameOverPanel;
     public Button startButton;
@@ -173,3 +365,4 @@ public void ExitGame()
         }
     }
 }
+*/

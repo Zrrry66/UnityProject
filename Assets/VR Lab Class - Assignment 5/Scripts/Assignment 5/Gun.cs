@@ -3,16 +3,19 @@ using UnityEngine.InputSystem;
 
 public class Gun : MonoBehaviour
 {
-    public GameObject bulletPrefab; // 预制子弹
-    public Transform firePoint; // 子弹发射点
-    public float bulletSpeed = 20f; // 子弹速度
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public float bulletSpeed = 20f;
 
-    public InputActionProperty shootAction; // 触发器按钮输入
+    public InputActionProperty shootAction;
 
     private void Update()
     {
+        Debug.Log("Update running...");
+
         if (shootAction.action.WasPressedThisFrame())
         {
+            Debug.Log("Trigger pressed. Shooting bullet..");
             ShootBullet();
         }
     }
@@ -21,17 +24,30 @@ public class Gun : MonoBehaviour
     {
         if (bulletPrefab == null || firePoint == null) return;
 
-        // 生成子弹
+        // Spawn bullets
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        Debug.Log("Bullet spawned");
+        Debug.Log($"Bullet spawned at {firePoint.position}");
         
-        // 添加刚体并施加力
+        
+        // Add rigidbody
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            rb.velocity = firePoint.forward * bulletSpeed;
+             Vector3 shootDirection = firePoint.forward.normalized;
+        Debug.Log($"firePoint.forward: {firePoint.forward} | shootDirection: {shootDirection}");
+            
+            rb.velocity = shootDirection * bulletSpeed;
+            //rb.velocity = firePoint.forward * bulletSpeed;
+            //rb.AddForce(firePoint.forward * bulletSpeed, ForceMode.Impulse);
+            Debug.Log($"Bullet velocity set to {rb.velocity}");
+        }
+        else
+        {
+            Debug.Log("can't find rigidbody");
         }
 
-        // 可选：销毁子弹，防止无限堆积
+        // Destroy bullet
         Destroy(bullet, 3f);
     }
 }
