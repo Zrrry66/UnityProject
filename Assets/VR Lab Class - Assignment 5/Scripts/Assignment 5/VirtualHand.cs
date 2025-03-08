@@ -114,6 +114,85 @@ public class VirtualHand : MonoBehaviour
 
     #region Custom Methods
 
+    private void SnapGrab()
+{
+    if (grabAction.action.IsPressed())
+    {
+        if (grabbedObject == null && canGrab)
+        {
+            grabbedObject = handCollider.collidingObject;
+
+            // Spawn new Dart if grabbing a dart
+            DartSpawner spawner = FindObjectOfType<DartSpawner>();
+            if (spawner != null && grabbedObject.CompareTag("Dart"))
+            {
+                spawner.SpawnNewDart();
+            }
+        }
+
+        if (grabbedObject != null)
+        {
+            if (grabbedObject.CompareTag("Dart"))
+            {
+                // Dart-specific transform offset
+                Vector3 dartOffset = new Vector3(-0.025f, 0, 0);
+                grabbedObject.transform.position = transform.position + transform.rotation * dartOffset;
+                
+                Quaternion dartOffsetRotation = Quaternion.Euler(0, 180, 0);
+                grabbedObject.transform.rotation = transform.rotation * dartOffsetRotation;
+            }
+            else if (grabbedObject.CompareTag("Gun"))
+            {
+                // Gun-specific transform offset
+                Vector3 gunOffset = new Vector3(-0.025f, 0, 0); // Adjust for better gun holding position
+                grabbedObject.transform.position = transform.position + transform.rotation * gunOffset;
+                
+                Quaternion gunOffsetRotation = Quaternion.Euler(-90, 0, 0); // Adjust to proper gun holding orientation
+                grabbedObject.transform.rotation = transform.rotation * gunOffsetRotation;
+
+                // Enable gun shooting script
+                Gun gunScript = grabbedObject.GetComponent<Gun>();
+                if (gunScript != null)
+                {
+                    gunScript.enabled = true;
+                }
+            }
+            else
+            {
+                // Default transform for other objects
+                grabbedObject.transform.position = transform.position;
+                grabbedObject.transform.rotation = transform.rotation;
+            }
+        }
+    }
+    else if (grabAction.action.WasReleasedThisFrame())
+    {
+        if (grabbedObject != null)
+        {
+            var dartThrow = grabbedObject.GetComponent<DartThrow>();
+            if (dartThrow != null)
+            {
+                dartThrow.OnReleased(transform);
+            }
+
+            grabbedObject.GetComponent<ObjectAccessHandler>().Release();
+
+            // Disable gun shooting script when released
+            if (grabbedObject.CompareTag("Gun"))
+            {
+                Gun gunScript = grabbedObject.GetComponent<Gun>();
+                if (gunScript != null)
+                {
+                    gunScript.enabled = false;
+                }
+            }
+        }
+
+        grabbedObject = null;
+    }
+}
+
+
     /*initial version
     private void SnapGrab()
     {
@@ -146,8 +225,8 @@ public class VirtualHand : MonoBehaviour
     */
    
    
-   /* this works!!!!
-   private void SnapGrab()
+// this works for dart!!!!
+/*   private void SnapGrab()
 {
     if (grabAction.action.IsPressed())
     {
@@ -191,7 +270,8 @@ public class VirtualHand : MonoBehaviour
 }
 */
 
-private void SnapGrab()
+//this works for the gun, not dart
+/*private void SnapGrab()
 {
     if (grabAction.action.IsPressed())
     {
@@ -236,7 +316,7 @@ private void SnapGrab()
         grabbedObject = null;
     }
 }
-
+*/
 
     private void ReparentingGrab()
     {

@@ -59,7 +59,7 @@ public class Balloon : MonoBehaviour
     {
         Debug.Log("Collision detected with" + other.gameObject.name);
         // Check if the balloon was hit by a dart
-        if (other.CompareTag("Dart"))
+        if (other.CompareTag("Dart") || other.CompareTag("Bullet"))
         {
             Debug.Log("Dart hit the balloon! Excuting Explode()");
             Explode();
