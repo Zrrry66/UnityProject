@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro; 
+using VRSYS.Core.Networking;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,16 +16,24 @@ public class GameManager : MonoBehaviour
     public Button exitButton;
     public CountdownTimer countdownTimer;
     public GameObject balloonSpawner;
-    public GameObject player; // XR character control
     public float gameTime = 60f;
 
-    // New: Weapon selection UI
+    // Weapon selection UI
     public GameObject weaponSelectionPanel;
     public TMP_Text weaponSelectionText;
     public Button gunButton;
     public Button dartButton;
-    public GameObject gunObject;  // Assign in Unity Inspector
-    public GameObject dartSpawner; // Assign in Unity Inspector
+    
+    [Header("Weapon Objects")]
+    //public GameObject gunObject;
+    public GameObject gunPrefab;
+
+    public Transform gunSpawnPoint1;
+    public Transform gunSpawnPoint2;
+    
+    public GameObject dartSpawnerPrefab;
+    public Transform dartSpawnPoint1;
+    public Transform dartSpawnPoint2;
 
     private enum GameState { WaitingToStart, Playing, GameOver }
     private GameState currentState = GameState.WaitingToStart;
@@ -43,28 +52,98 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
-        startButton.onClick.AddListener(ShowWeaponSelection);  // Modified: Show weapon selection first
-        restartButton.onClick.AddListener(RestartGame);
-        exitButton.onClick.AddListener(ExitGame);
+        // Buttons
+        if (startButton != null)
+        {
+            startButton.onClick.AddListener(OnStartButtonClicked);
+        }
 
+        if (restartButton != null)
+        {
+            restartButton.onClick.AddListener(RestartGame);
+        }
+
+        if (exitButton != null)
+        {
+            exitButton.onClick.AddListener(ExitGame);
+        }
+        // Set weapon button to uninteractable, change it in ShwoWeaponSelection
+        if (gunButton != null)
+        {
+            gunButton.interactable = false;
+        }
+
+        if (dartButton != null)
+        {
+            dartButton.interactable = false;
+        }
+        
         ShowStartPanel();
     }
-
+    
     void ShowStartPanel()
     {
-        startPanel.SetActive(true);
-        gameOverPanel.SetActive(false);
-        weaponSelectionPanel.SetActive(false);  // Hide weapon selection panel
-        balloonSpawner.SetActive(false); // Ensure balloon spawner is inactive before game starts
+        // Show Start Panel 
+        if (startPanel != null) 
+        { 
+            startPanel.SetActive(true);
+            startButton.interactable = false;
+        }
+        
+        //hide panels
+        if (weaponSelectionPanel != null)
+        {
+            weaponSelectionPanel.SetActive(false); 
+        }
+
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(false);
+        }
+
+        // Ensure balloon spawner is inactive before game starts
+        if (balloonSpawner != null)
+        {
+            balloonSpawner.SetActive(false); 
+        }
+        
+        // Initialize
         ScoreManager.Instance.ResetScore();
         currentState = GameState.WaitingToStart;
+    }
+
+    void Update()
+    {
+        if (NetworkManager.Singleton.IsListening && NetworkManager.Singleton.IsHost)
+        {
+            // Host can click the button
+            startButton.interactable = true;
+        }
+        else
+        {
+            startButton.interactable = false;
+        }
+    }
+
+    private void OnStartButtonClicked()
+    {
+        if (!NetworkManager.Singleton.IsHost) return;
+
+        ShowWeaponSelection();
     }
 
     // Show weapon selection after clicking Start
     private void ShowWeaponSelection()
     {
-        startPanel.SetActive(false);
-        weaponSelectionPanel.SetActive(true);
+        if (startPanel != null)
+        {
+             startPanel.SetActive(false);
+        }
+
+        if (weaponSelectionPanel != null)
+        {
+            weaponSelectionPanel.SetActive(true);
+        }
         weaponSelectionText.text = "Please choose your weapon";
 
         // Bind weapon selection button events
@@ -76,30 +155,77 @@ public class GameManager : MonoBehaviour
 
     private void SelectWeapon(string weapon)
     {
-        weaponSelectionPanel.SetActive(false); // Hide weapon selection panel
+        // Hide weapon selection panel
+        if (weaponSelectionPanel != null)
+        {
+            weaponSelectionPanel.SetActive(false);
+        } 
 
         if (weapon == "Gun")
         {
-            if (dartSpawner != null)
-            {
-                dartSpawner.SetActive(false); // Disable DartSpawner
-            }
+            SpawnTwoGuns();
         }
         else if (weapon == "Dart")
         {
-            if (gunObject != null)
-            {
-                gunObject.SetActive(false); // Hide Gun
-            }
+            SpawnTwoDartSpawners();
         }
 
-        StartActualGame(); // Continue original game logic
+        StartActualGame(); // Enter game
     }
 
-    // This method retains the original StartGame() logic
+    private void SpawnTwoGuns()
+    {
+        if (!NetworkManager.Singleton.IsServer) return;
+
+        if (gunPrefab == null)
+        {
+            Debug.LogWarning("Gun Prefab not assigned!");
+            return;
+        }
+
+        if (gunSpawnPoint1 != null)
+        {
+            var g1 = Instantiate(gunPrefab, gunSpawnPoint1.position, gunSpawnPoint1.rotation);
+            var netObj1 = g1.GetComponent<NetworkObject>();
+            if (netObj1 != null)
+                netObj1.Spawn(); 
+        }
+        if (gunSpawnPoint2 != null)
+        {
+            var g2 = Instantiate(gunPrefab, gunSpawnPoint2.position, gunSpawnPoint2.rotation);
+            var netObj2 = g2.GetComponent<NetworkObject>();
+            if (netObj2 != null)
+                netObj2.Spawn();
+        }
+    }
+
+    private void SpawnTwoDartSpawners()
+    {
+        if (!NetworkManager.Singleton.IsServer) return;
+
+        if (dartSpawnerPrefab == null)
+        {
+            Debug.LogWarning("DartSpawner Prefab not assigned!");
+            return;
+        }
+
+        if (dartSpawnPoint1 != null)
+        {
+            var d1 = Instantiate(dartSpawnerPrefab, dartSpawnPoint1.position, dartSpawnPoint1.rotation);
+            var netObj1 = d1.GetComponent<NetworkObject>();
+            if (netObj1 != null)
+                netObj1.Spawn();
+        }
+        if (dartSpawnPoint2 != null)
+        {
+            var d2 = Instantiate(dartSpawnerPrefab, dartSpawnPoint2.position, dartSpawnPoint2.rotation);
+            var netObj2 = d2.GetComponent<NetworkObject>();
+            if (netObj2 != null)
+                netObj2.Spawn();
+        }
+    }
     private void StartActualGame()
     {
-        gameOverPanel.SetActive(false);
         ScoreManager.Instance.ResetScore();
         countdownTimer.StartTimer(gameTime);
         currentState = GameState.Playing;
@@ -111,6 +237,7 @@ public class GameManager : MonoBehaviour
             raycaster.DeactivateRay();
         }
 
+        // Activate balloon spawner
         if (balloonSpawner != null)
         {
             balloonSpawner.SetActive(true);
@@ -121,17 +248,23 @@ public class GameManager : MonoBehaviour
                 spawnerScript.StartSpawning();
             }
         }
-
-        if (NetworkManager.Singleton.IsServer)
+        
+        if (NetworkManager.Singleton.IsServer && !NetworkManager.Singleton.IsListening)
         {
             NetworkManager.Singleton.StartHost();
         }
+
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(false);
     }
 
     public void GameOver()
     {
         currentState = GameState.GameOver;
-        gameOverPanel.SetActive(true);
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+        }
 
         // Reactivate RayCaster
         RayCaster raycaster = FindObjectOfType<RayCaster>();
@@ -152,17 +285,13 @@ public class GameManager : MonoBehaviour
     public void RestartGame()
     {
         Time.timeScale = 1;
+        currentState = GameState.Playing;
 
         // Deactivate RayCaster
         RayCaster raycaster = FindObjectOfType<RayCaster>();
         if (raycaster != null)
         {
             raycaster.DeactivateRay();
-        }
-
-        if (player != null && player.GetComponent<CharacterController>() != null)
-        {
-            player.GetComponent<CharacterController>().enabled = true;
         }
 
         // Clear existing balloons
@@ -183,13 +312,17 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        gameOverPanel.SetActive(false);
-        currentState = GameState.Playing;
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(false);
+        }
     }
 
     public void ExitGame()
     {
         ShowStartPanel();
+        
+        Time.timeScale = 1;
 
         // Reactivate RayCaster
         RayCaster raycaster = FindObjectOfType<RayCaster>();
@@ -211,12 +344,10 @@ public class GameManager : MonoBehaviour
         }
 
         ClearBalloons();
-        Time.timeScale = 1;
-
-        if (player != null && player.GetComponent<CharacterController>() != null)
-        {
-            player.GetComponent<CharacterController>().enabled = true;
-        }
+        
+        // Set start button to be only clickable for Host
+        if (!NetworkManager.Singleton.IsHost && startButton != null)
+            startButton.interactable = false;
     }
 
     private void ClearBalloons()
