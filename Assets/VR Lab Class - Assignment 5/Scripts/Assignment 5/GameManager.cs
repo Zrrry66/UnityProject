@@ -2,10 +2,267 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro; 
+using TMPro;
 using VRSYS.Core.Networking;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
+{
+    public static GameManager Instance { get; private set; }
+
+    public GameObject startPanel;
+    public GameObject gameOverPanel;
+    public Button startButton;
+    public Button restartButton;
+    public Button exitButton;
+    public CountdownTimer countdownTimer;
+    public GameObject balloonSpawner;
+    public float gameTime = 60f;
+
+    public GameObject weaponSelectionPanel;
+    public TMP_Text weaponSelectionText;
+    public Button gunButton;
+    public Button dartButton;
+
+    [Header("Weapon Objects")]
+    public GameObject gunPrefab;
+    public Transform gunSpawnPoint1;
+    public Transform gunSpawnPoint2;
+
+    [Header("Dart Settings")]
+    public GameObject dartPrefab;
+    public GameObject dartSpawnerPrefab;
+    public Transform dartSpawnPoint1;
+    public Transform dartSpawnPoint2;
+
+    private enum GameState { WaitingToStart, Playing, GameOver }
+    private NetworkVariable<GameState> currentState = new NetworkVariable<GameState>(GameState.WaitingToStart, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
+
+    private void Start()
+    {
+        if (NetworkManager.Singleton != null)
+{
+    NetworkManager.Singleton.StartHost();
+}
+
+        if (startButton != null)
+        {
+            startButton.onClick.AddListener(() => RequestStartGameRpc());
+        }
+
+        if (restartButton != null)
+        {
+            restartButton.onClick.AddListener(() => RequestRestartGameRpc());
+        }
+
+        if (exitButton != null)
+        {
+            exitButton.onClick.AddListener(() => RequestExitGameRpc());
+        }
+
+        ShowStartPanel();
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsClient)
+        {
+            currentState.OnValueChanged += (oldState, newState) => OnGameStateChanged(newState);
+        }
+    }
+
+    private void OnGameStateChanged(GameState newState)
+    {
+        if (newState == GameState.WaitingToStart)
+        {
+            ShowStartPanel();
+        }
+        else if (newState == GameState.Playing)
+        {
+            StartActualGame();
+        }
+        else if (newState == GameState.GameOver)
+        {
+            ShowGameOverPanel();
+        }
+    }
+
+    private void ShowStartPanel()
+    {
+        if (startPanel != null) startPanel.SetActive(true);
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        if (weaponSelectionPanel != null) weaponSelectionPanel.SetActive(false);
+        if (balloonSpawner != null) balloonSpawner.SetActive(false);
+
+        if (IsServer) ScoreManager.Instance.ResetScore();
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestStartGameRpc()
+    {
+        if (!IsServer) return;
+        ShowWeaponSelection();
+    }
+
+    private void ShowWeaponSelection()
+    {
+        if (startPanel != null) startPanel.SetActive(false);
+        if (weaponSelectionPanel != null) weaponSelectionPanel.SetActive(true);
+        weaponSelectionText.text = "Please choose your weapon";
+
+        gunButton.onClick.RemoveAllListeners();
+        dartButton.onClick.RemoveAllListeners();
+        gunButton.onClick.AddListener(() => SelectWeapon("Gun"));
+        dartButton.onClick.AddListener(() => SelectWeapon("Dart"));
+    }
+
+    private void SelectWeapon(string weapon)
+    {
+        if (weaponSelectionPanel != null) weaponSelectionPanel.SetActive(false);
+
+        if (weapon == "Gun") SpawnTwoGuns();
+        else if (weapon == "Dart") SpawnTwoDartSpawners();
+
+        RequestStartActualGameRpc();
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestStartActualGameRpc()
+    {
+        if (!IsServer) return;
+
+        ScoreManager.Instance.ResetScore();
+        countdownTimer.StartTimer(gameTime);
+        currentState.Value = GameState.Playing;
+    }
+
+    private void StartActualGame()
+    {
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        if (balloonSpawner != null) balloonSpawner.SetActive(true);
+
+        if (balloonSpawner != null)
+        {
+            BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
+            if (spawnerScript != null) spawnerScript.StartSpawning();
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestRestartGameRpc()
+    {
+        if (!IsServer) return;
+
+        Time.timeScale = 1;
+        currentState.Value = GameState.Playing;
+        ScoreManager.Instance.ResetScore();
+        countdownTimer.StartTimer(gameTime);
+
+        ClearBalloons();
+
+        if (balloonSpawner != null) balloonSpawner.SetActive(true);
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+    }
+
+    [Rpc(SendTo.Server)]
+    private void RequestExitGameRpc()
+    {
+        if (!IsServer) return;
+        currentState.Value = GameState.WaitingToStart;
+    }
+
+    private void ShowGameOverPanel()
+    {
+        if (gameOverPanel != null) gameOverPanel.SetActive(true);
+    }
+
+    public void GameOver()
+    {
+        if (IsServer)
+        {
+            currentState.Value = GameState.GameOver;
+            ClearBalloons();
+        }
+    }
+
+    private void SpawnTwoGuns()
+    {
+        if (!IsServer) return;
+
+        if (gunPrefab == null)
+        {
+            Debug.LogWarning("Gun Prefab not assigned!");
+            return;
+        }
+
+        if (gunSpawnPoint1 != null)
+        {
+            GameObject g1 = Instantiate(gunPrefab, gunSpawnPoint1.position, gunSpawnPoint1.rotation);
+            NetworkObject netObj1 = g1.GetComponent<NetworkObject>();
+            if (netObj1 != null) netObj1.Spawn();
+        }
+
+        if (gunSpawnPoint2 != null)
+        {
+            GameObject g2 = Instantiate(gunPrefab, gunSpawnPoint2.position, gunSpawnPoint2.rotation);
+            NetworkObject netObj2 = g2.GetComponent<NetworkObject>();
+            if (netObj2 != null) netObj2.Spawn();
+        }
+    }
+
+    private void SpawnTwoDartSpawners()
+    {
+        if (!IsServer) return;
+
+        if (dartSpawnerPrefab == null)
+        {
+            Debug.LogWarning("DartSpawner Prefab not assigned!");
+            return;
+        }
+
+        if (dartSpawnPoint1 != null)
+        {
+            GameObject d1 = Instantiate(dartSpawnerPrefab, dartSpawnPoint1.position, dartSpawnPoint1.rotation);
+            NetworkObject netObj1 = d1.GetComponent<NetworkObject>();
+            if (netObj1 != null) netObj1.Spawn();
+        }
+
+        if (dartSpawnPoint2 != null)
+        {
+            GameObject d2 = Instantiate(dartSpawnerPrefab, dartSpawnPoint2.position, dartSpawnPoint2.rotation);
+            NetworkObject netObj2 = d2.GetComponent<NetworkObject>();
+            if (netObj2 != null) netObj2.Spawn();
+        }
+    }
+
+    private void ClearBalloons()
+    {
+        GameObject[] balloons = GameObject.FindGameObjectsWithTag("Balloon");
+        foreach (GameObject balloon in balloons)
+        {
+            Destroy(balloon);
+        }
+    }
+
+    public bool IsGameRunning()
+    {
+        return currentState.Value == GameState.Playing;
+    }
+}
+
+/*this works. need to change variable to networkvariable
+using Unity.Netcode;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using TMPro; 
+
+public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance { get; private set; }
 
@@ -30,6 +287,10 @@ public class GameManager : MonoBehaviour
 
     public Transform gunSpawnPoint1;
     public Transform gunSpawnPoint2;
+
+    [Header("Dart Settings")]
+public GameObject dartPrefab; // 这里添加 dartPrefab
+
     
     public GameObject dartSpawnerPrefab;
     public Transform dartSpawnPoint1;
@@ -185,48 +446,102 @@ public class GameManager : MonoBehaviour
 
         if (gunSpawnPoint1 != null)
         {
-            var g1 = Instantiate(gunPrefab, gunSpawnPoint1.position, gunSpawnPoint1.rotation);
-            var netObj1 = g1.GetComponent<NetworkObject>();
-            if (netObj1 != null)
-                netObj1.Spawn(); 
+GameObject g1 = Instantiate(gunPrefab, gunSpawnPoint1.position, gunSpawnPoint1.rotation);
+        Rigidbody rb1 = g1.GetComponent<Rigidbody>();
+        if (rb1 != null)
+        {
+            rb1.isKinematic = true;  // Make gun stop in the air
+            rb1.useGravity = false;
+            rb1.velocity = Vector3.zero;
+            rb1.angularVelocity = Vector3.zero;
+        }
+
+        NetworkObject netObj1 = g1.GetComponent<NetworkObject>();
+        if (netObj1 != null)
+        {
+            netObj1.Spawn();
+        }
+                
         }
         if (gunSpawnPoint2 != null)
         {
-            var g2 = Instantiate(gunPrefab, gunSpawnPoint2.position, gunSpawnPoint2.rotation);
-            var netObj2 = g2.GetComponent<NetworkObject>();
-            if (netObj2 != null)
-                netObj2.Spawn();
+GameObject g2 = Instantiate(gunPrefab, gunSpawnPoint2.position, gunSpawnPoint2.rotation);
+        Rigidbody rb2 = g2.GetComponent<Rigidbody>();
+        if (rb2 != null)
+        {
+            rb2.isKinematic = true;  // Make gun stop in the air
+            rb2.useGravity = false;
+            rb2.velocity = Vector3.zero;
+            rb2.angularVelocity = Vector3.zero;
+        }
+
+        NetworkObject netObj2 = g2.GetComponent<NetworkObject>();
+        if (netObj2 != null)
+        {
+            netObj2.Spawn();
+        }
+            
         }
     }
 
-    private void SpawnTwoDartSpawners()
+private void SpawnTwoDartSpawners()
+{
+    if (!NetworkManager.Singleton.IsServer) return;
+
+    if (dartSpawnerPrefab == null)
     {
-        if (!NetworkManager.Singleton.IsServer) return;
+        Debug.LogWarning("DartSpawner Prefab not assigned!");
+        return;
+    }
 
-        if (dartSpawnerPrefab == null)
-        {
-            Debug.LogWarning("DartSpawner Prefab not assigned!");
-            return;
-        }
+    // **Spawn DartSpawner 1**
+    if (dartSpawnPoint1 != null)
+    {
+        GameObject d1 = Instantiate(dartSpawnerPrefab, dartSpawnPoint1.position, dartSpawnPoint1.rotation);
+        DartSpawner spawner1 = d1.GetComponent<DartSpawner>();
 
-        if (dartSpawnPoint1 != null)
+        if (spawner1 != null)
         {
-            var d1 = Instantiate(dartSpawnerPrefab, dartSpawnPoint1.position, dartSpawnPoint1.rotation);
-            var netObj1 = d1.GetComponent<NetworkObject>();
-            if (netObj1 != null)
-                netObj1.Spawn();
+            spawner1.spawnPoint = dartSpawnPoint1; 
+            Debug.Log("DartSpawner 1 assigned to spawn at " + dartSpawnPoint1.position);
+
+            spawner1.SpawnNewDart(); 
         }
-        if (dartSpawnPoint2 != null)
+        else
         {
-            var d2 = Instantiate(dartSpawnerPrefab, dartSpawnPoint2.position, dartSpawnPoint2.rotation);
-            var netObj2 = d2.GetComponent<NetworkObject>();
-            if (netObj2 != null)
-                netObj2.Spawn();
+            Debug.LogWarning("DartSpawner script not found on spawned object 1!");
         }
     }
+
+    // **Spawn DartSpawner 2**
+    if (dartSpawnPoint2 != null)
+    {
+        GameObject d2 = Instantiate(dartSpawnerPrefab, dartSpawnPoint2.position, dartSpawnPoint2.rotation);
+        DartSpawner spawner2 = d2.GetComponent<DartSpawner>();
+
+        if (spawner2 != null)
+        {
+            spawner2.spawnPoint = dartSpawnPoint2;
+            Debug.Log("DartSpawner 2 assigned to spawn at " + dartSpawnPoint2.position);
+
+            spawner2.SpawnNewDart();
+        }
+        else
+        {
+            Debug.LogWarning("DartSpawner script not found on spawned object 2!");
+        }
+    }
+}
+
+   
     private void StartActualGame()
     {
-        ScoreManager.Instance.ResetScore();
+        //ScoreManager.Instance.ResetScore();
+        if (IsServer)
+        {
+            ScoreManager.Instance.ResetScore(); 
+        }
+
         countdownTimer.StartTimer(gameTime);
         currentState = GameState.Playing;
 
@@ -362,376 +677,6 @@ public class GameManager : MonoBehaviour
     public bool IsGameRunning()
     {
         return currentState == GameState.Playing;
-    }
-}
-
-/*this works. need to add weapon select panel
-using Unity.Netcode;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-
-public class GameManager : MonoBehaviour
-{
-    public static GameManager Instance { get; private set; }
-
-    public GameObject startPanel;
-    public GameObject gameOverPanel;
-    public Button startButton;
-    public Button restartButton;
-    public Button exitButton;
-    public CountdownTimer countdownTimer;
-    public GameObject balloonSpawner;
-    public GameObject player; // XR 角色控制
-    public float gameTime = 60f;
-
-    private enum GameState { WaitingToStart, Playing, GameOver }
-    private GameState currentState = GameState.WaitingToStart;
-
-    private void Awake()
-    {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    void Start()
-    {
-        startButton.onClick.AddListener(StartGame);
-        restartButton.onClick.AddListener(RestartGame);
-        exitButton.onClick.AddListener(ExitGame);
-
-        ShowStartPanel();
-    }
-
-    void ShowStartPanel()
-    {
-        startPanel.SetActive(true);
-        gameOverPanel.SetActive(false);
-        balloonSpawner.SetActive(false); // Make sure balloons don't spawn before game starts
-        ScoreManager.Instance.ResetScore();
-        currentState = GameState.WaitingToStart;
-    }
-
-    public void StartGame()
-    {
-        startPanel.SetActive(false);
-        gameOverPanel.SetActive(false);
-        ScoreManager.Instance.ResetScore();
-        countdownTimer.StartTimer(gameTime);
-        currentState = GameState.Playing;
-
-        // **Deactivate ray after clicking on the button**
-        RayCaster raycaster = FindObjectOfType<RayCaster>();
-        if (raycaster != null)
-        {
-            raycaster.DeactivateRay();
-        }
-
-        if (balloonSpawner != null)
-        {
-            balloonSpawner.SetActive(true);
-
-            BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
-            if (spawnerScript != null)
-            {
-                spawnerScript.StartSpawning(); 
-            }
-        }
-
-        if (NetworkManager.Singleton.IsServer)
-        {
-            NetworkManager.Singleton.StartHost();
-        }
-    }
-
-    public void GameOver()
-    {
-        currentState = GameState.GameOver;
-        gameOverPanel.SetActive(true);
-
-        // **Reactivate ray when game ends**
-        RayCaster raycaster = FindObjectOfType<RayCaster>();
-        if (raycaster != null)
-        {
-            raycaster.DeactivateRay(); // Ensure it starts OFF
-            raycaster.enabled = true; // Allow reactivation
-        }
-
-        if (balloonSpawner != null)
-        {
-            balloonSpawner.SetActive(false);
-        }
-
-        Time.timeScale = 0;
-    }
-
-    public void RestartGame()
-    {
-        Time.timeScale = 1;
-
-        // **Deactivate ray after clicking on the button**
-        RayCaster raycaster = FindObjectOfType<RayCaster>();
-        if (raycaster != null)
-        {
-            raycaster.DeactivateRay();
-        }
-
-        if (player != null && player.GetComponent<CharacterController>() != null)
-        {
-            player.GetComponent<CharacterController>().enabled = true;
-        }
-
-        // **Clear existing balloons**
-        ClearBalloons();
-
-        // **Reset game state**
-        ScoreManager.Instance.ResetScore();
-        countdownTimer.StartTimer(gameTime);
-
-        if (balloonSpawner != null)
-        {
-            balloonSpawner.SetActive(true);
-
-            BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
-            if (spawnerScript != null)
-            {
-                spawnerScript.StartSpawning();
-            }
-        }
-
-        gameOverPanel.SetActive(false);
-        currentState = GameState.Playing;
-    }
-
-    public void ExitGame()
-    {
-        ShowStartPanel();
-
-        // **Reactivate ray when returning to menu**
-        RayCaster raycaster = FindObjectOfType<RayCaster>();
-        if (raycaster != null)
-        {
-            raycaster.DeactivateRay();
-            raycaster.enabled = true;
-        }
-
-        if (balloonSpawner != null)
-        {
-            balloonSpawner.SetActive(false);
-
-            BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
-            if (spawnerScript != null)
-            {
-                spawnerScript.StopSpawning();
-            }
-        }
-
-        ClearBalloons();
-        Time.timeScale = 1;
-
-        if (player != null && player.GetComponent<CharacterController>() != null)
-        {
-            player.GetComponent<CharacterController>().enabled = true;
-        }
-    }
-
-    private void ClearBalloons()
-    {
-        GameObject[] balloons = GameObject.FindGameObjectsWithTag("Balloon");
-        foreach (GameObject balloon in balloons)
-        {
-            Destroy(balloon);
-        }
-    }
-
-    // **This function allows other scripts to check if the game is running**
-    public bool IsGameRunning()
-    {
-        return currentState == GameState.Playing;
-    }
-}
-*/
-
-/*this works. need to add singleton
-using Unity.Netcode;
-using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-
-public class GameManager : MonoBehaviour
-{
-    public GameObject startPanel;
-    public GameObject gameOverPanel;
-    public Button startButton;
-    public Button restartButton;
-    public Button exitButton;
-    public CountdownTimer countdownTimer;
-    public GameObject balloonSpawner;
-    public GameObject player; // XR 角色控制
-    public float gameTime = 60f;
-
-    private enum GameState { WaitingToStart, Playing, GameOver }
-    private GameState currentState = GameState.WaitingToStart;
-
-    void Start()
-    {
-        startButton.onClick.AddListener(StartGame);
-        restartButton.onClick.AddListener(RestartGame);
-        exitButton.onClick.AddListener(ExitGame);
-
-        ShowStartPanel();
-    }
-
-    void ShowStartPanel()
-    {
-        startPanel.SetActive(true);
-        gameOverPanel.SetActive(false);
-        balloonSpawner.SetActive(false); // 确保游戏未开始时气球不生成
-        ScoreManager.Instance.ResetScore();
-        currentState = GameState.WaitingToStart;
-    }
-
-public void StartGame()
-{
-    startPanel.SetActive(false);
-    gameOverPanel.SetActive(false);
-    ScoreManager.Instance.ResetScore();
-    countdownTimer.StartTimer(gameTime);
-    currentState = GameState.Playing;
-    
-    
-    //deactivate ray after cliking on button
-    RayCaster raycaster = FindObjectOfType<RayCaster>();
-    if (raycaster != null)
-    {
-        raycaster.DeactivateRay();
-    }
-    
-    if (balloonSpawner != null)
-    {
-        balloonSpawner.SetActive(true);
-
-        BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
-        if (spawnerScript != null)
-        {
-            spawnerScript.StartSpawning(); // **确保 StartGame() 也会重新启动气球生成**
-        }
-    }
-
-    if (NetworkManager.Singleton.IsServer)
-    {
-        NetworkManager.Singleton.StartHost();
-    }
-}
-
-
-    public void GameOver()
-    {
-        currentState = GameState.GameOver;
-        gameOverPanel.SetActive(true);
-        
-        // **停止气球生成**
-        if (balloonSpawner != null)
-        {
-            balloonSpawner.SetActive(false);
-        }
-
-        // **暂停游戏**
-        Time.timeScale = 0;
-    }
-
-public void RestartGame()
-{
-    Time.timeScale = 1;
-
-    //deactivate ray after cliking on button
-    RayCaster raycaster = FindObjectOfType<RayCaster>();
-    if (raycaster != null)
-    {
-        raycaster.DeactivateRay();
-    }
-
-
-    if (player != null && player.GetComponent<CharacterController>() != null)
-    {
-        player.GetComponent<CharacterController>().enabled = true;
-    }
-
-    // **清除现有气球**
-    ClearBalloons();
-
-    // **重置游戏状态**
-    ScoreManager.Instance.ResetScore();
-    countdownTimer.StartTimer(gameTime);
-    
-    if (balloonSpawner != null)
-    {
-        balloonSpawner.SetActive(true);
-        
-        BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
-        if (spawnerScript != null)
-        {
-            spawnerScript.StartSpawning(); // **重新开始生成气球**
-        }
-    }
-
-    gameOverPanel.SetActive(false);
-    currentState = GameState.Playing;
-}
-
-public void ExitGame()
-{
-    ShowStartPanel();
-
-
-    //deactivate ray after cliking on button
-    RayCaster raycaster = FindObjectOfType<RayCaster>();
-    if (raycaster != null)
-    {
-        raycaster.DeactivateRay();
-    }
-
-    
-
-    // **彻底停止气球生成**
-    if (balloonSpawner != null)
-    {
-        balloonSpawner.SetActive(false);
-        
-        BalloonSpawner spawnerScript = balloonSpawner.GetComponent<BalloonSpawner>();
-        if (spawnerScript != null)
-        {
-            spawnerScript.StopSpawning(); // **停止生成**
-        }
-    }
-
-    // **清除所有气球**
-    ClearBalloons();
-
-    // **恢复时间**
-    Time.timeScale = 1;
-
-    // **恢复玩家控制**
-    if (player != null && player.GetComponent<CharacterController>() != null)
-    {
-        player.GetComponent<CharacterController>().enabled = true;
-    }
-}
-
-
-    private void ClearBalloons()
-    {
-        GameObject[] balloons = GameObject.FindGameObjectsWithTag("Balloon");
-        foreach (GameObject balloon in balloons)
-        {
-            Destroy(balloon);
-        }
     }
 }
 */

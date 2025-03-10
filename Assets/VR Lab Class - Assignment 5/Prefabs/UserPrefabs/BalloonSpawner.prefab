@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1158195514693009505
+--- !u!1 &8605830714919863402
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,45 +8,45 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8415060744612647731}
-  - component: {fileID: 7761645142792747609}
-  - component: {fileID: 615499908875043295}
+  - component: {fileID: 8457813906925793790}
+  - component: {fileID: 6712934473760141069}
+  - component: {fileID: 2333368409456290695}
   m_Layer: 0
-  m_Name: DartSpawner
+  m_Name: BalloonSpawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8415060744612647731
+--- !u!4 &8457813906925793790
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1158195514693009505}
+  m_GameObject: {fileID: 8605830714919863402}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -0.396, y: 0.8025, z: -0.061}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -7.115215, y: -2.2475672, z: -4.9459486}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
---- !u!114 &7761645142792747609
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6712934473760141069
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1158195514693009505}
+  m_GameObject: {fileID: 8605830714919863402}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 435177688
-  InScenePlacedSourceGlobalObjectIdHash: 435177688
+  GlobalObjectIdHash: 1470469987
+  InScenePlacedSourceGlobalObjectIdHash: 0
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
@@ -54,17 +54,27 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &615499908875043295
+--- !u!114 &2333368409456290695
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1158195514693009505}
+  m_GameObject: {fileID: 8605830714919863402}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 17aff8b6b9adaf04cba17f8e23b4d65b, type: 3}
+  m_Script: {fileID: 11500000, guid: 4b93520e3e4888c49901df9d819c9d56, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dartPrefab: {fileID: 6719539277235060150, guid: 5e0f6d9f8501cab48b3ee0265d67c17b, type: 3}
-  spawnPoint: {fileID: 0}
+  balloonTypes:
+  - prefab: {fileID: 3715761065994419004, guid: 49bb860288009fc469973244af756768, type: 3}
+    spawnProbability: 50
+  - prefab: {fileID: 3550560744896618554, guid: b799443a86435ac48816dd3a0b6a9cd2, type: 3}
+    spawnProbability: 30
+  - prefab: {fileID: 8350515666994345702, guid: d094e94fafe40f241b2a637a5bfba1c1, type: 3}
+    spawnProbability: 15
+  - prefab: {fileID: 9128957925294580837, guid: fccea2a803c5a4745836a30beafa36fe, type: 3}
+    spawnProbability: 5
+  spawnArea: {fileID: 0}
+  spawnRange: {x: 0.61, y: 1.4, z: 2.13}
+  spawnInterval: 1.5

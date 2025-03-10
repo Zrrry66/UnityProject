@@ -123,10 +123,60 @@ public class VirtualHand : MonoBehaviour
             grabbedObject = handCollider.collidingObject;
 
             // Spawn new Dart if grabbing a dart
-            DartSpawner spawner = FindObjectOfType<DartSpawner>();
+            /*DartSpawner spawner = FindObjectOfType<DartSpawner>();
             if (spawner != null && grabbedObject.CompareTag("Dart"))
             {
                 spawner.SpawnNewDart();
+            }
+            */
+            if (grabbedObject != null && grabbedObject.CompareTag("Dart"))
+{
+    // Find all DartSpawner in the scene
+    DartSpawner[] allSpawners = FindObjectsOfType<DartSpawner>();
+    if (allSpawners.Length == 0)
+    {
+        Debug.LogWarning("No DartSpawner found in scene!");
+    }
+    else
+    {
+        // Pick the closest Spawner to this dart
+        DartSpawner nearestSpawner = null;
+        float minDist = float.MaxValue;
+
+        foreach (DartSpawner s in allSpawners)
+        {
+            float dist = Vector3.Distance(s.transform.position, grabbedObject.transform.position);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                nearestSpawner = s;
+            }
+        }
+
+        // Call the closest Spawner to spawn a dart
+        if (nearestSpawner != null)
+        {
+            Debug.Log($"[{name}] grabbed a Dart. Nearest spawner is {nearestSpawner.name} (distance={minDist}). Spawning new Dart...");
+            nearestSpawner.SpawnNewDart();
+        }
+    }
+}
+if (grabbedObject != null && grabbedObject.CompareTag("Gun"))
+            {
+                // Grab
+                Rigidbody rb = grabbedObject.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.isKinematic = false; // Make gun move freely
+                    rb.useGravity = false; 
+                }
+
+                // Enable shoot()
+                Gun gunScript = grabbedObject.GetComponent<Gun>();
+                if (gunScript != null)
+                {
+                    gunScript.enabled = true;
+                }
             }
         }
 
@@ -185,6 +235,17 @@ public class VirtualHand : MonoBehaviour
                 {
                     gunScript.enabled = false;
                 }
+
+                // Make gun stop in the air
+                Rigidbody rb = grabbedObject.GetComponent<Rigidbody>();
+                if (rb != null)
+                {
+                    rb.isKinematic = true;
+                    rb.useGravity = false;
+                    rb.velocity = Vector3.zero;
+                    rb.angularVelocity = Vector3.zero;
+                }
+
             }
         }
 

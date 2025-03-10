@@ -39,12 +39,12 @@ public class Gun : MonoBehaviour
         if (rb != null)
         {
              Vector3 shootDirection = firePoint.forward.normalized;
-        Debug.Log($"firePoint.forward: {firePoint.forward} | shootDirection: {shootDirection}");
+        //Debug.Log($"firePoint.forward: {firePoint.forward} | shootDirection: {shootDirection}");
             
             rb.velocity = shootDirection * bulletSpeed;
             //rb.velocity = firePoint.forward * bulletSpeed;
             //rb.AddForce(firePoint.forward * bulletSpeed, ForceMode.Impulse);
-            Debug.Log($"Bullet velocity set to {rb.velocity}");
+            //Debug.Log($"Bullet velocity set to {rb.velocity}");
         }
         else
         {

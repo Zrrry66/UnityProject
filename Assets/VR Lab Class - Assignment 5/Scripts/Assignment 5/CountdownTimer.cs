@@ -1,5 +1,74 @@
 using UnityEngine;
 using TMPro;
+using Unity.Netcode;
+
+public class CountdownTimer : NetworkBehaviour
+{
+    private NetworkVariable<float> timeRemaining = new NetworkVariable<float>(60f, NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+    
+    public TextMeshPro timerText;
+    private bool isRunning = false;
+
+    private void Start()
+    {
+        // 初始化 UI 显示当前倒计时时间
+        UpdateTimerDisplay(timeRemaining.Value);
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        if (IsClient)
+        {
+            // 监听时间变化，确保 UI 及时更新
+            timeRemaining.OnValueChanged += (oldValue, newValue) => UpdateTimerDisplay(newValue);
+        }
+    }
+
+    private void Update()
+    {
+        if (IsServer && isRunning && timeRemaining.Value > 0)
+        {
+            float newTime = timeRemaining.Value - Time.deltaTime;
+            timeRemaining.Value = Mathf.Max(0, newTime);
+
+            if (timeRemaining.Value <= 0)
+            {
+                isRunning = false;
+                GameManager.Instance.GameOver();
+            }
+        }
+    }
+
+    public void StartTimer(float gameTime)
+    {
+        if (IsOwner)
+        {
+            StartTimerRpc(gameTime);
+        }
+    }
+
+    [Rpc(SendTo.Server)]
+    public void StartTimerRpc(float gameTime)
+    {
+        timeRemaining.Value = gameTime;
+        isRunning = true;
+    }
+
+    private void UpdateTimerDisplay(float value)
+    {
+        int minutes = Mathf.FloorToInt(value / 60);
+        int seconds = Mathf.FloorToInt(value % 60);
+        if (timerText != null)
+        {
+            timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
+        }
+    }
+}
+
+
+/*this works. need to change to networkvariable
+using UnityEngine;
+using TMPro;
 
 public class CountdownTimer : MonoBehaviour
 {
@@ -51,8 +120,10 @@ public class CountdownTimer : MonoBehaviour
     }
 }
 
+*/
 
-/*using UnityEngine;
+/*initial version
+using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
