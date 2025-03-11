@@ -74,7 +74,12 @@ public class BalloonSpawner : MonoBehaviour
                 Random.Range(spawnArea.position.z - spawnRange.z, spawnArea.position.z + spawnRange.z)
             );
 
-            Instantiate(selectedBalloon, spawnPosition, Quaternion.identity);
+            GameObject balloonInstance = Instantiate(selectedBalloon, spawnPosition, Quaternion.identity);
+
+             if (selectedBalloon == balloonTypes[3].prefab)
+    {
+        balloonInstance.transform.rotation = Quaternion.Euler(0, 90, 0);
+    }
         }
     }
 
