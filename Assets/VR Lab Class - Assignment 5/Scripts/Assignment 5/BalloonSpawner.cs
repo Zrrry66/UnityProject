@@ -17,8 +17,8 @@ public class BalloonSpawner : MonoBehaviour
     public Transform spawnArea; // Center of the sapwn area
     public Vector3 spawnRange = new Vector3(5f, 2f, 5f); // Spawn range
     public float spawnInterval = 2.0f;
-
-    private bool isSpawning = true; //to control the spawning
+    
+    private bool isSpawning = false; //to control the spawning
 
     private void Awake()
     {

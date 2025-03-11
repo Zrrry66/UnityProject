@@ -31,6 +31,9 @@ public class GameManager : NetworkBehaviour
     public Transform gunSpawnPoint1;
     public Transform gunSpawnPoint2;
 
+    private string selectedWeapon = null;
+
+
     [Header("Dart Settings")]
 public GameObject dartPrefab; // 这里添加 dartPrefab
 
@@ -159,6 +162,9 @@ public GameObject dartPrefab; // 这里添加 dartPrefab
 
     private void SelectWeapon(string weapon)
     {
+
+        selectedWeapon = weapon;
+
         // Hide weapon selection panel
         if (weaponSelectionPanel != null)
         {
@@ -166,13 +172,13 @@ public GameObject dartPrefab; // 这里添加 dartPrefab
         } 
 
         if (weapon == "Gun")
-        {
-            SpawnTwoGuns();
-        }
-        else if (weapon == "Dart")
-        {
-            SpawnTwoDartSpawners();
-        }
+    {
+        SpawnTwoGuns();
+    }
+    else if (weapon == "Dart")
+    {
+        SpawnTwoDartSpawners();
+    }
 
         StartActualGame(); // Enter game
     }
@@ -276,7 +282,29 @@ private void SpawnTwoDartSpawners()
     }
 }
 
-   
+   private void ClearWeapons()
+{
+    // 查找场景中所有带“Gun”标签的物体
+    GameObject[] guns = GameObject.FindGameObjectsWithTag("Gun");
+    foreach (GameObject gun in guns)
+    {
+        Destroy(gun);
+    }
+    GameObject[] dartspawners = GameObject.FindGameObjectsWithTag("DartSpawner");
+    foreach (GameObject dartspawner in dartspawners)
+    {
+        Destroy(dartspawner);
+    }
+
+    // 查找场景中所有带“Dart”标签的物体（包括飞镖生成器）
+    GameObject[] darts = GameObject.FindGameObjectsWithTag("Dart");
+    foreach (GameObject dart in darts)
+    {
+        Destroy(dart);
+    }
+}
+
+
     private void StartActualGame()
     {
         //ScoreManager.Instance.ResetScore();
@@ -328,14 +356,16 @@ private void SpawnTwoDartSpawners()
         RayCaster raycaster = FindObjectOfType<RayCaster>();
         if (raycaster != null)
         {
-            raycaster.DeactivateRay();
-            raycaster.enabled = true;
+            raycaster.ReactivateRay();
         }
 
         if (balloonSpawner != null)
         {
             balloonSpawner.SetActive(false);
         }
+
+            // 关键：销毁武器
+    ClearWeapons();
 
         Time.timeScale = 0;
     }
@@ -354,6 +384,19 @@ private void SpawnTwoDartSpawners()
 
         // Clear existing balloons
         ClearBalloons();
+
+        ClearWeapons();
+
+        // **重新生成武器**
+    if (selectedWeapon == "Gun")
+    {
+        SpawnTwoGuns();
+    }
+    else if (selectedWeapon == "Dart")
+    {
+        SpawnTwoDartSpawners();
+    }
+
 
         // Reset game state
         ScoreManager.Instance.ResetScore();
@@ -386,8 +429,7 @@ private void SpawnTwoDartSpawners()
         RayCaster raycaster = FindObjectOfType<RayCaster>();
         if (raycaster != null)
         {
-            raycaster.DeactivateRay();
-            raycaster.enabled = true;
+            raycaster.ReactivateRay();
         }
 
         if (balloonSpawner != null)
@@ -402,6 +444,7 @@ private void SpawnTwoDartSpawners()
         }
 
         ClearBalloons();
+           ClearWeapons();
         
         // Set start button to be only clickable for Host
         if (!NetworkManager.Singleton.IsHost && startButton != null)

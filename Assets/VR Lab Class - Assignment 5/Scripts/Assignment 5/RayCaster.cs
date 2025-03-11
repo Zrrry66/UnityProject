@@ -95,6 +95,12 @@ public class RayCaster : MonoBehaviour
         isRayActive = false;
         lineRenderer.enabled = false;
     }
+
+     public void ReactivateRay()
+    {
+        isRayActive = true;
+        lineRenderer.enabled = true;
+    }
 }
 
 

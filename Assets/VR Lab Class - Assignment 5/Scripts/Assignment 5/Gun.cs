@@ -22,6 +22,12 @@ public class Gun : MonoBehaviour
         }
     }
 
+    private void Start()
+{
+    this.enabled = false; // 禁用射击功能，直到枪被抓取
+}
+
+
     private void ShootBullet()
     {
         if (bulletPrefab == null || firePoint == null) return;

@@ -831,7 +831,7 @@ MonoBehaviour:
   exitButton: {fileID: 418623853}
   countdownTimer: {fileID: 1833131731}
   balloonSpawner: {fileID: 610432748}
-  gameTime: 50
+  gameTime: 20
   weaponSelectionPanel: {fileID: 1203909132}
   weaponSelectionText: {fileID: 745007969}
   gunButton: {fileID: 635817424}
@@ -4976,6 +4976,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3ea914967eea904a8dd37c0119e1c87, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  timeRemaining: 60
   timerText: {fileID: 919388499}
 --- !u!4 &1833131732
 Transform:
