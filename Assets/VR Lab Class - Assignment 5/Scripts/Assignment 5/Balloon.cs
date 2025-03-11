@@ -13,6 +13,9 @@ public class Balloon : MonoBehaviour
 
     private Color balloonColor; // Stores the balloon's color
 
+    public AudioClip popSound;
+    private AudioSource audioSource; 
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -37,6 +40,12 @@ public class Balloon : MonoBehaviour
         if (renderer != null)
         {
             balloonColor = renderer.material.color;
+        }
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
         }
     }
 
@@ -69,6 +78,10 @@ public class Balloon : MonoBehaviour
 
     private void Explode()
     {
+        if (popSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(popSound);
+        }
         // Instantiate explosion effect at balloon's position
         if (explosionEffect != null)
         {

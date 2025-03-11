@@ -8,7 +8,16 @@ public class Gun : MonoBehaviour
     public float bulletSpeed = 20f;
 
     public InputActionProperty shootAction;
+    private AudioSource audioSources；
 
+    private void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            Debug.LogError("No audiosource found on gun! plzz dd one");
+        }
+    }
     private void Update()
     {
         if (!GameManager.Instance.IsGameRunning()) return; // 游戏未开始时，不允许射击
@@ -31,6 +40,10 @@ public class Gun : MonoBehaviour
     private void ShootBullet()
     {
         if (bulletPrefab == null || firePoint == null) return;
+        if (audioSource != null)ss
+        {
+            audioSource.Play();
+        }
 
         // Spawn bullets
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation * Quaternion.Euler(90,0,0));

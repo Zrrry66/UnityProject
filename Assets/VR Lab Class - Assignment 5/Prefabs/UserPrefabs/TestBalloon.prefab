@@ -150,3 +150,4 @@ MonoBehaviour:
   explosionEffect: {fileID: 0}
   scoreTextPrefab: {fileID: 0}
   scoreValue: 25
+  popSound: {fileID: 8300000, guid: e75161a4fb6d9d845bff3d3dfa946a02, type: 3}
