@@ -14,11 +14,12 @@ public class HandCollider : MonoBehaviour
 
     private void Start()
     {
-        if (!GetComponentInParent<NetworkObject>().IsOwner)
+        /*if (!GetComponentInParent<NetworkObject>().IsOwner)
         {
             Destroy(this);
             return;
         }
+        */
     }
 
     private void OnTriggerEnter(Collider other)
