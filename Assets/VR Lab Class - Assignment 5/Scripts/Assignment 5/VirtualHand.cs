@@ -81,11 +81,12 @@ public class VirtualHand : MonoBehaviour
         bool isOwner = GetComponentInParent<NetworkObject>().IsOwner;
     Debug.Log($"VirtualHand Start - IsOwner: {isOwner}");
 
-        if (!isOwner)
+        /*if (!isOwner)
         {
             Destroy(this);
             return;
         }
+        */
     }
 
     private void Update()
@@ -157,7 +158,9 @@ public class VirtualHand : MonoBehaviour
         if (nearestSpawner != null)
         {
             Debug.Log($"[{name}] grabbed a Dart. Nearest spawner is {nearestSpawner.name} (distance={minDist}). Spawning new Dart...");
-            nearestSpawner.SpawnNewDart();
+            //nearestSpawner.SpawnNewDart();
+            nearestSpawner.RequestSpawnNewDartServerRpc();
+
         }
     }
 }

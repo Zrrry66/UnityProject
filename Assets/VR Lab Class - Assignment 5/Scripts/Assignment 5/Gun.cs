@@ -34,17 +34,14 @@ public class Gun : NetworkBehaviour
 
     private void Start()
 {
-    this.enabled = false; // 禁用射击功能，直到枪被抓取
+    this.enabled = false; // Enable it when grabbed
 }
 
 
     private void ShootBullet()
     {
         if (bulletPrefab == null || firePoint == null) return;
-        if (audioSource != null)
-        {
-            audioSource.Play();
-        }
+
 
         // Spawn bullets
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation * Quaternion.Euler(90,0,0));
@@ -53,7 +50,12 @@ public class Gun : NetworkBehaviour
         Debug.Log("Bullet spawned");
         Debug.Log($"Bullet spawned at {firePoint.position}");
         
-        
+        if (audioSource != null)
+        {
+            audioSource.Play();
+        }
+
+
         // Add rigidbody
         Rigidbody rb = bullet.GetComponent<Rigidbody>();
         if (rb != null)

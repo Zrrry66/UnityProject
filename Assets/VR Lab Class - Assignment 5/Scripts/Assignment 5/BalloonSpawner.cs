@@ -47,8 +47,16 @@ public class BalloonSpawner : NetworkBehaviour
 }
  void SpawnBalloon()
     {
-        if (!isSpawning || balloonTypes.Length == 0) return;
- 		if (!IsServer) return; // Modified: only server spawns
+        if (!isSpawning || balloonTypes.Length == 0) 
+        {
+             Debug.Log("Not spawning: either not spawning flag or no balloon types");
+            return;
+        }
+ 		if (!IsServer) 
+         {
+             Debug.Log("Not spawning: not server");
+             return; // Modified: only server spawns
+         }
 
 
         // Calculate probability

@@ -2,7 +2,9 @@ using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro; 
+using TMPro;
+using Unity.Collections;
+
 
 public class GameManager : NetworkBehaviour
 {
@@ -32,12 +34,12 @@ public class GameManager : NetworkBehaviour
 
     //private string selectedWeapon = null;
  // Modified: use network variable to store selected weapon
-    private NetworkVariable<string> selectedWeapon = new NetworkVariable<string>();
+    private NetworkVariable<FixedString32Bytes> selectedWeapon = new NetworkVariable<FixedString32Bytes>();
 
 
 
     [Header("Dart Settings")]
-public GameObject dartPrefab; // 这里添加 dartPrefab
+public GameObject dartPrefab;
 
     
     public GameObject dartSpawnerPrefab;
@@ -61,6 +63,8 @@ public GameObject dartPrefab; // 这里添加 dartPrefab
 
     void Start()
     {
+         NetworkManager.Singleton.StartHost();
+         Debug.Log($"IsServer={NetworkManager.Singleton.IsServer}, IsClient={NetworkManager.Singleton.IsClient}, IsHost={NetworkManager.Singleton.IsHost}");
         // Buttons
         if (startButton != null)
         {
@@ -119,6 +123,8 @@ public GameObject dartPrefab; // 这里添加 dartPrefab
         // Initialize
         ScoreManager.Instance.ResetScore();
         currentState = GameState.WaitingToStart;
+
+         SyncUIPanelsClientRpc(true, false, false, false);
     }
 
     void Update()
@@ -160,12 +166,14 @@ public GameObject dartPrefab; // 这里添加 dartPrefab
         dartButton.onClick.RemoveAllListeners();
         gunButton.onClick.AddListener(() => SelectWeapon("Gun"));
         dartButton.onClick.AddListener(() => SelectWeapon("Dart"));
+
+         SyncUIPanelsClientRpc(false, true, false, false);
     }
 
     private void SelectWeapon(string weapon)
     {
 
-      selectedWeapon.Value = weapon; // Modified: set network variable
+      selectedWeapon.Value = weapon; //set network variable
 
         // Hide weapon selection panel
         if (weaponSelectionPanel != null)
@@ -183,6 +191,8 @@ public GameObject dartPrefab; // 这里添加 dartPrefab
     }
 
         StartActualGame(); // Enter game
+
+        SyncUIPanelsClientRpc(false, false, false, false);
     }
 
     private void SpawnTwoGuns()
@@ -201,7 +211,7 @@ GameObject g1 = Instantiate(gunPrefab, gunSpawnPoint1.position, gunSpawnPoint1.r
         Rigidbody rb1 = g1.GetComponent<Rigidbody>();
         if (rb1 != null)
         {
-            rb1.isKinematic = true;  // Make gun stop in the air
+            //rb1.isKinematic = true;  // Make gun stop in the air
             rb1.useGravity = false;
             rb1.velocity = Vector3.zero;
             rb1.angularVelocity = Vector3.zero;
@@ -220,7 +230,7 @@ GameObject g2 = Instantiate(gunPrefab, gunSpawnPoint2.position, gunSpawnPoint2.r
         Rigidbody rb2 = g2.GetComponent<Rigidbody>();
         if (rb2 != null)
         {
-            rb2.isKinematic = true;  // Make gun stop in the air
+            //rb2.isKinematic = true;  // Make gun stop in the air
             rb2.useGravity = false;
             rb2.velocity = Vector3.zero;
             rb2.angularVelocity = Vector3.zero;
@@ -256,7 +266,7 @@ private void SpawnTwoDartSpawners()
             spawner1.spawnPoint = dartSpawnPoint1; 
             Debug.Log("DartSpawner 1 assigned to spawn at " + dartSpawnPoint1.position);
 
-            spawner1.SpawnNewDart(); 
+            //spawner1.SpawnNewDart(); 
         }
         else
         {
@@ -280,7 +290,7 @@ private void SpawnTwoDartSpawners()
             spawner2.spawnPoint = dartSpawnPoint2;
             Debug.Log("DartSpawner 2 assigned to spawn at " + dartSpawnPoint2.position);
 
-            spawner2.SpawnNewDart();
+            //spawner2.SpawnNewDart();
         }
         else
         {
@@ -289,7 +299,7 @@ private void SpawnTwoDartSpawners()
 NetworkObject netObj2 = d2.GetComponent<NetworkObject>();
             if (netObj2 != null)
             {
-                netObj2.Spawn(); // Modified: network spawn dart spawner
+                netObj2.Spawn(); // network spawn dart spawner
             }
     }
 }
@@ -302,7 +312,7 @@ private void ClearWeapons()
         NetworkObject netObj = gun.GetComponent<NetworkObject>();
         if (netObj != null)
         {
-            netObj.Despawn(); // Modified: remove network object from all clients
+            netObj.Despawn(); // remove network object from all clients
         }
         else
         {
@@ -377,6 +387,8 @@ private void ClearWeapons()
 
         if (gameOverPanel != null)
             gameOverPanel.SetActive(false);
+
+        SyncUIPanelsClientRpc(false, false, false, false);
     }
 
     public void GameOver()
@@ -399,10 +411,12 @@ private void ClearWeapons()
             balloonSpawner.SetActive(false);
         }
 
-            // 关键：销毁武器
+            //Destroy weapons
     ClearWeapons();
 
         Time.timeScale = 0;
+
+        SyncUIPanelsClientRpc(false, false, true, false);
     }
 
     public void RestartGame()
@@ -422,7 +436,7 @@ private void ClearWeapons()
 
         ClearWeapons();
 
-        // **重新生成武器**
+        // **Spawn weapon again**
     if (selectedWeapon.Value == "Gun")
     {
         SpawnTwoGuns();
@@ -452,6 +466,8 @@ private void ClearWeapons()
         {
             gameOverPanel.SetActive(false);
         }
+
+        SyncUIPanelsClientRpc(false, false, false, false);
     }
 
     public void ExitGame()
@@ -479,7 +495,7 @@ private void ClearWeapons()
         }
 
         ClearBalloons();
-           ClearWeapons();
+        ClearWeapons();
         
         // Set start button to be only clickable for Host
         if (!NetworkManager.Singleton.IsHost && startButton != null)
@@ -498,5 +514,26 @@ private void ClearWeapons()
     public bool IsGameRunning()
     {
         return currentState == GameState.Playing;
+    }
+
+     [ClientRpc]
+    private void SyncUIPanelsClientRpc(bool startPanelActive, bool weaponPanelActive, bool gameOverPanelActive, bool startButtonInteractable, ClientRpcParams clientRpcParams = default)
+    {
+        if (startPanel != null)
+        {
+            startPanel.SetActive(startPanelActive);
+        }
+        if (weaponSelectionPanel != null)
+        {
+            weaponSelectionPanel.SetActive(weaponPanelActive);
+        }
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(gameOverPanelActive);
+        }
+        if (startButton != null)
+        {
+            startButton.interactable = startButtonInteractable;
+        }
     }
 }
