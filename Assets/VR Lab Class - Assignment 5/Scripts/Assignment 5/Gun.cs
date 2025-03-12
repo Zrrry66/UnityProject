@@ -1,14 +1,15 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Unity.Netcode;
 
-public class Gun : MonoBehaviour
+public class Gun : NetworkBehaviour
 {
     public GameObject bulletPrefab;
     public Transform firePoint;
     public float bulletSpeed = 20f;
 
     public InputActionProperty shootAction;
-    private AudioSource audioSources；
+    private AudioSource audioSource;
 
     private void Awake()
     {
@@ -40,7 +41,7 @@ public class Gun : MonoBehaviour
     private void ShootBullet()
     {
         if (bulletPrefab == null || firePoint == null) return;
-        if (audioSource != null)ss
+        if (audioSource != null)
         {
             audioSource.Play();
         }
@@ -70,6 +71,12 @@ public class Gun : MonoBehaviour
             Debug.Log("can't find rigidbody");
         }
 
+		// Modified: Spawn bullet as network object
+        NetworkObject netObj = bullet.GetComponent<NetworkObject>();
+        if (netObj != null)
+        {
+            netObj.Spawn();
+        }
         // Destroy bullet
         Destroy(bullet, 3f);
     }

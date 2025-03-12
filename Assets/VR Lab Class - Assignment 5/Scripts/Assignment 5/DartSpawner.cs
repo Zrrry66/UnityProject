@@ -1,7 +1,7 @@
-//this works. need to change to networkbehaviour
 using UnityEngine;
+using Unity.Netcode;
 
-public class DartSpawner : MonoBehaviour
+public class DartSpawner : NetworkBehaviour
 {
     public GameObject dartPrefab;
     public Transform spawnPoint; 
@@ -16,6 +16,8 @@ public class DartSpawner : MonoBehaviour
 
     public void SpawnNewDart()
     {
+		if (!IsServer) return; // Modified: spawn only on server
+
         if (dartPrefab == null)
         {
             Debug.LogWarning($"[{name}] DartPrefab not assigned, cannot spawn!");
@@ -38,5 +40,11 @@ public class DartSpawner : MonoBehaviour
         rb.isKinematic = false;
         rb.useGravity = true;   // If true, has a small movement. Looks better
     }
+// Modified: Spawn as network object
+        NetworkObject netObj = newDart.GetComponent<NetworkObject>();
+        if (netObj != null)
+        {
+            netObj.Spawn();
+        }
     }
 }

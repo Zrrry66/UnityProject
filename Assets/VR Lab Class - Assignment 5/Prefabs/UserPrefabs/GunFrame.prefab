@@ -178,9 +178,9 @@ GameObject:
   - component: {fileID: 4886258176862262670}
   - component: {fileID: 3505069192620928476}
   - component: {fileID: 1436069127261295573}
+  - component: {fileID: 3886690743898633775}
   - component: {fileID: 3453802429308562478}
   - component: {fileID: 6326141232074131705}
-  - component: {fileID: 3886690743898633775}
   - component: {fileID: 1555315249586485361}
   - component: {fileID: 1367806951949082707}
   m_Layer: 11
@@ -286,6 +286,27 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &3886690743898633775
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5849917502273384890}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 576118379
+  InScenePlacedSourceGlobalObjectIdHash: 576118379
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!114 &3453802429308562478
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -334,27 +355,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.00047158112, y: 0.0019783739, z: 0.0022288759}
   m_Center: {x: 1.394468e-10, y: -0.0005101959, z: 0.00038167494}
---- !u!114 &3886690743898633775
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5849917502273384890}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  GlobalObjectIdHash: 1616115190
-  InScenePlacedSourceGlobalObjectIdHash: 576118379
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
 --- !u!114 &1555315249586485361
 MonoBehaviour:
   m_ObjectHideFlags: 0

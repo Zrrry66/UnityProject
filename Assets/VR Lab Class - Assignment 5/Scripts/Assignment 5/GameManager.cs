@@ -1,4 +1,3 @@
-//this works. need to change variable to networkvariable
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -31,7 +30,10 @@ public class GameManager : NetworkBehaviour
     public Transform gunSpawnPoint1;
     public Transform gunSpawnPoint2;
 
-    private string selectedWeapon = null;
+    //private string selectedWeapon = null;
+ // Modified: use network variable to store selected weapon
+    private NetworkVariable<string> selectedWeapon = new NetworkVariable<string>();
+
 
 
     [Header("Dart Settings")]
@@ -163,7 +165,7 @@ public GameObject dartPrefab; // 这里添加 dartPrefab
     private void SelectWeapon(string weapon)
     {
 
-        selectedWeapon = weapon;
+      selectedWeapon.Value = weapon; // Modified: set network variable
 
         // Hide weapon selection panel
         if (weaponSelectionPanel != null)
@@ -260,6 +262,11 @@ private void SpawnTwoDartSpawners()
         {
             Debug.LogWarning("DartSpawner script not found on spawned object 1!");
         }
+ 	NetworkObject netObj1 = d1.GetComponent<NetworkObject>();
+            if (netObj1 != null)
+            {
+                netObj1.Spawn(); // Modified: network spawn dart spawner
+            }
     }
 
     // **Spawn DartSpawner 2**
@@ -279,30 +286,58 @@ private void SpawnTwoDartSpawners()
         {
             Debug.LogWarning("DartSpawner script not found on spawned object 2!");
         }
+NetworkObject netObj2 = d2.GetComponent<NetworkObject>();
+            if (netObj2 != null)
+            {
+                netObj2.Spawn(); // Modified: network spawn dart spawner
+            }
     }
 }
 
-   private void ClearWeapons()
+private void ClearWeapons()
 {
-    // 查找场景中所有带“Gun”标签的物体
     GameObject[] guns = GameObject.FindGameObjectsWithTag("Gun");
     foreach (GameObject gun in guns)
     {
-        Destroy(gun);
+        NetworkObject netObj = gun.GetComponent<NetworkObject>();
+        if (netObj != null)
+        {
+            netObj.Despawn(); // Modified: remove network object from all clients
+        }
+        else
+        {
+            Destroy(gun);
+        }
     }
     GameObject[] dartspawners = GameObject.FindGameObjectsWithTag("DartSpawner");
     foreach (GameObject dartspawner in dartspawners)
     {
-        Destroy(dartspawner);
+        NetworkObject netObj = dartspawner.GetComponent<NetworkObject>();
+        if (netObj != null)
+        {
+            netObj.Despawn();
+        }
+        else
+        {
+            Destroy(dartspawner);
+        }
     }
 
-    // 查找场景中所有带“Dart”标签的物体（包括飞镖生成器）
     GameObject[] darts = GameObject.FindGameObjectsWithTag("Dart");
     foreach (GameObject dart in darts)
     {
-        Destroy(dart);
+        NetworkObject netObj = dart.GetComponent<NetworkObject>();
+        if (netObj != null)
+        {
+            netObj.Despawn();
+        }
+        else
+        {
+            Destroy(dart);
+        }
     }
 }
+
 
 
     private void StartActualGame()
@@ -334,7 +369,7 @@ private void SpawnTwoDartSpawners()
                 spawnerScript.StartSpawning();
             }
         }
-        
+        // Modified: if not listening, start host (only once)
         if (NetworkManager.Singleton.IsServer && !NetworkManager.Singleton.IsListening)
         {
             NetworkManager.Singleton.StartHost();
@@ -388,11 +423,11 @@ private void SpawnTwoDartSpawners()
         ClearWeapons();
 
         // **重新生成武器**
-    if (selectedWeapon == "Gun")
+    if (selectedWeapon.Value == "Gun")
     {
         SpawnTwoGuns();
     }
-    else if (selectedWeapon == "Dart")
+    else if (selectedWeapon.Value == "Dart")
     {
         SpawnTwoDartSpawners();
     }

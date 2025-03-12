@@ -1,11 +1,14 @@
 //this works. need to change to networkvariable
 using UnityEngine;
 using TMPro;
+using Unity.Netcode;
 
-public class CountdownTimer : MonoBehaviour
+public class CountdownTimer : NetworkBehaviour
 {
-    public float timeRemaining = 60f;  // 倒计时时间
-    public TextMeshPro timerText;      // UI 倒计时显示
+    //public float timeRemaining = 60f;
+    // Modified: change timeRemaining to a network variable with initial value 60f
+    public NetworkVariable<float> timeRemaining = new NetworkVariable<float>(60f);
+    public TextMeshPro timerText; 
     //public GameObject balloonSpawner;  // 气球生成器
 
     private bool isRunning = false;
@@ -14,35 +17,43 @@ public class CountdownTimer : MonoBehaviour
     private void Start()
     {
         gameManager = FindObjectOfType<GameManager>(); // 找到 GameManager
+
+// Subscribe to changes so all clients update UI
+        timeRemaining.OnValueChanged += (oldValue, newValue) => UpdateTimerDisplay();
     }
 
     void Update()
     {
-        if (isRunning && timeRemaining > 0)
+        // Only server updates the countdown
+        if (IsServer && isRunning && timeRemaining.Value > 0)
         {
-            timeRemaining -= Time.deltaTime;
-            if (timeRemaining < 0) timeRemaining = 0;
-            UpdateTimerDisplay();
+            timeRemaining.Value -= Time.deltaTime;
+            if (timeRemaining.Value < 0) timeRemaining.Value = 0;
+            // UI updated via OnValueChanged event
         }
-        else if (isRunning) // 时间到了
+        else if (IsServer && isRunning) // Time ended on server
         {
             isRunning = false;
-            gameManager.GameOver(); // 通知 GameManager 游戏结束
+            gameManager.GameOver();
         }
     }
 
     void UpdateTimerDisplay()
     {
-        int minutes = Mathf.FloorToInt(timeRemaining / 60);
-        int seconds = Mathf.FloorToInt(timeRemaining % 60);
+        int minutes = Mathf.FloorToInt(timeRemaining.Value / 60);
+        int seconds = Mathf.FloorToInt(timeRemaining.Value % 60);
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
     // **开始倒计时（由 GameManager 调用）**
+// Modified: Only server should start timer and update network variable
     public void StartTimer(float gameTime)
     {
-        timeRemaining = gameTime;
-        isRunning = true;
+        if (IsServer)
+        {
+            timeRemaining.Value = gameTime;
+            isRunning = true;
+        }
     }
 
     // **停止倒计时**

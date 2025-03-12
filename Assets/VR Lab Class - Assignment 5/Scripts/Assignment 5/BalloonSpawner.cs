@@ -1,7 +1,7 @@
-//this works. need to change to network
 using UnityEngine;
+using Unity.Netcode;
 
-public class BalloonSpawner : MonoBehaviour
+public class BalloonSpawner : NetworkBehaviour 
 {
 
      public static BalloonSpawner Instance;
@@ -27,7 +27,12 @@ public class BalloonSpawner : MonoBehaviour
 
     private void Start()
     {
-        InvokeRepeating(nameof(SpawnBalloon), 1f, spawnInterval);
+        // Modified: Only start spawning if server
+        if (IsServer)
+        {
+            InvokeRepeating(nameof(SpawnBalloon), 1f, spawnInterval);
+            isSpawning = true;
+        }
     }
 
    void OnDrawGizmos()
@@ -43,6 +48,8 @@ public class BalloonSpawner : MonoBehaviour
  void SpawnBalloon()
     {
         if (!isSpawning || balloonTypes.Length == 0) return;
+ 		if (!IsServer) return; // Modified: only server spawns
+
 
         // Calculate probability
         float totalProbability = 0f;
@@ -80,6 +87,13 @@ public class BalloonSpawner : MonoBehaviour
     {
         balloonInstance.transform.rotation = Quaternion.Euler(0, 90, 0);
     }
+
+// Modified: Spawn as network object
+            NetworkObject netObj = balloonInstance.GetComponent<NetworkObject>();
+            if (netObj != null)
+            {
+                netObj.Spawn();
+            }
         }
     }
 
