@@ -39,9 +39,7 @@ public class GameManager : NetworkBehaviour
 
 
     [Header("Dart Settings")]
-public GameObject dartPrefab;
-
-    
+    public GameObject dartPrefab;
     public GameObject dartSpawnerPrefab;
     public Transform dartSpawnPoint1;
     public Transform dartSpawnPoint2;
@@ -63,8 +61,8 @@ public GameObject dartPrefab;
 
     void Start()
     {
-         NetworkManager.Singleton.StartHost();
-         Debug.Log($"IsServer={NetworkManager.Singleton.IsServer}, IsClient={NetworkManager.Singleton.IsClient}, IsHost={NetworkManager.Singleton.IsHost}");
+         //NetworkManager.Singleton.StartHost();
+         //Debug.Log($"IsServer={NetworkManager.Singleton.IsServer}, IsClient={NetworkManager.Singleton.IsClient}, IsHost={NetworkManager.Singleton.IsHost}");
         // Buttons
         if (startButton != null)
         {
@@ -129,6 +127,8 @@ public GameObject dartPrefab;
 
     void Update()
     {
+
+         Debug.Log($"IsServer={NetworkManager.Singleton.IsServer}, IsClient={NetworkManager.Singleton.IsClient}, IsHost={NetworkManager.Singleton.IsHost}");
         if (NetworkManager.Singleton.IsListening && NetworkManager.Singleton.IsHost)
         {
             // Host can click the button
@@ -160,6 +160,16 @@ public GameObject dartPrefab;
             weaponSelectionPanel.SetActive(true);
         }
         weaponSelectionText.text = "Please choose your weapon";
+
+
+        if (gunButton != null)
+    {
+        gunButton.interactable = true;
+    }
+    if (dartButton != null)
+    {
+        dartButton.interactable = true;
+    }
 
         // Bind weapon selection button events
         gunButton.onClick.RemoveAllListeners();
@@ -220,6 +230,7 @@ GameObject g1 = Instantiate(gunPrefab, gunSpawnPoint1.position, gunSpawnPoint1.r
         NetworkObject netObj1 = g1.GetComponent<NetworkObject>();
         if (netObj1 != null)
         {
+       //if (!NetworkManager.Singleton.IsServer) return;
             netObj1.Spawn();
         }
                 
@@ -239,6 +250,7 @@ GameObject g2 = Instantiate(gunPrefab, gunSpawnPoint2.position, gunSpawnPoint2.r
         NetworkObject netObj2 = g2.GetComponent<NetworkObject>();
         if (netObj2 != null)
         {
+            //if (!NetworkManager.Singleton.IsServer) return;
             netObj2.Spawn();
         }
             
@@ -353,7 +365,7 @@ private void ClearWeapons()
     private void StartActualGame()
     {
         //ScoreManager.Instance.ResetScore();
-        if (IsServer)
+        if (!NetworkManager.Singleton.IsServer)
         {
             ScoreManager.Instance.ResetScore(); 
         }

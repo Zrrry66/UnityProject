@@ -245,8 +245,8 @@ if (grabbedObject != null && grabbedObject.CompareTag("Gun"))
                 Rigidbody rb = grabbedObject.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
-                    //rb.isKinematic = true;
-                    rb.isKinematic = false;
+                    rb.isKinematic = true;
+                    //rb.isKinematic = false;
                     rb.useGravity = false;
                     rb.velocity = Vector3.zero;
                     rb.angularVelocity = Vector3.zero;

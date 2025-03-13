@@ -77,6 +77,7 @@ public class Gun : NetworkBehaviour
         NetworkObject netObj = bullet.GetComponent<NetworkObject>();
         if (netObj != null)
         {
+            if (!NetworkManager.Singleton.IsServer) return;
             netObj.Spawn();
         }
         // Destroy bullet

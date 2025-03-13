@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9145344380408590372}
   - component: {fileID: 3691043570820359281}
   - component: {fileID: 4987554291347279785}
-  - component: {fileID: 4360939513601779009}
+  - component: {fileID: 4794721718296054554}
   m_Layer: 0
   m_Name: BalloonExplosionEffect
   m_TagString: Untagged
@@ -4911,7 +4911,7 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
---- !u!114 &4360939513601779009
+--- !u!114 &4794721718296054554
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -4920,7 +4920,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3190632472757303634}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c1175d4c69579d54faa82ae10441d03c, type: 3}
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   UseUnreliableDeltas: 0

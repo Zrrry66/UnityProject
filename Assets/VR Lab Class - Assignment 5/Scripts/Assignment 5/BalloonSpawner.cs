@@ -28,7 +28,7 @@ public class BalloonSpawner : NetworkBehaviour
     private void Start()
     {
         // Modified: Only start spawning if server
-        if (IsServer)
+        if (NetworkManager.Singleton.IsServer)
         {
             InvokeRepeating(nameof(SpawnBalloon), 1f, spawnInterval);
             isSpawning = true;
@@ -52,10 +52,11 @@ public class BalloonSpawner : NetworkBehaviour
              Debug.Log("Not spawning: either not spawning flag or no balloon types");
             return;
         }
- 		if (!IsServer) 
+ 	
+         if (!NetworkManager.Singleton.IsServer) 
          {
              Debug.Log("Not spawning: not server");
-             return; // Modified: only server spawns
+             return; // only server spawns
          }
 
 
