@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 6888311759223999905}
   - component: {fileID: 7467831947777854924}
   - component: {fileID: 505139421352432804}
-  - component: {fileID: 7246997558518596113}
   - component: {fileID: -9122686362542073125}
+  - component: {fileID: 7246997558518596113}
   - component: {fileID: -8784166020904819951}
   m_Layer: 0
   m_Name: redBalloonPrefab
@@ -136,23 +136,6 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.18
   m_Center: {x: -0.000000022351742, y: 0.65, z: 0.000000007450581}
---- !u!114 &7246997558518596113
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3550560744896618554}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6db5f9944b5ed324a8a86c8ccf6b7de7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  riseSpeed: 0.1
-  explosionEffect: {fileID: 3190632472757303634, guid: f85a7e1fef03fe849a81a57113e5c1ff, type: 3}
-  scoreTextPrefab: {fileID: 9115735506077005224, guid: f4ea4a0bd55dedc4b909d2445fa15cb7, type: 3}
-  scoreValue: 50
-  popSound: {fileID: 8300000, guid: e75161a4fb6d9d845bff3d3dfa946a02, type: 3}
 --- !u!114 &-9122686362542073125
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -174,6 +157,23 @@ MonoBehaviour:
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
+--- !u!114 &7246997558518596113
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3550560744896618554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6db5f9944b5ed324a8a86c8ccf6b7de7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  riseSpeed: 0.1
+  explosionEffect: {fileID: 3190632472757303634, guid: f85a7e1fef03fe849a81a57113e5c1ff, type: 3}
+  scoreTextPrefab: {fileID: 9115735506077005224, guid: f4ea4a0bd55dedc4b909d2445fa15cb7, type: 3}
+  scoreValue: 50
+  popSound: {fileID: 8300000, guid: e75161a4fb6d9d845bff3d3dfa946a02, type: 3}
 --- !u!114 &-8784166020904819951
 MonoBehaviour:
   m_ObjectHideFlags: 0

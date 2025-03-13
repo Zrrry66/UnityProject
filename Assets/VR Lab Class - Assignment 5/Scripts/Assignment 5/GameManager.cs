@@ -424,7 +424,7 @@ private void ClearWeapons()
         }
 
             //Destroy weapons
-    ClearWeapons();
+            ClearWeapons();
 
         Time.timeScale = 0;
 
