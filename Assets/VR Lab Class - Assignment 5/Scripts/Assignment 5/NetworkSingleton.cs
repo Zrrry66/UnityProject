@@ -13,11 +13,11 @@ public class NetworkSingleton : MonoBehaviour
         if (instance == null)
         {
             instance = this;
-            DontDestroyOnLoad(gameObject); // **防止 Netcode 在场景切换时被销毁**
+            DontDestroyOnLoad(gameObject); // **Don't destroy Netcode when changing scene**
         }
         else
         {
-            Destroy(gameObject); // **如果已有一个实例，防止重复**
+            Destroy(gameObject); // **Only keep one in the scene**
         }
     }
 }

@@ -32,10 +32,8 @@ public class GameManager : NetworkBehaviour
     public Transform gunSpawnPoint1;
     public Transform gunSpawnPoint2;
 
-    //private string selectedWeapon = null;
- // Modified: use network variable to store selected weapon
+ 	// Use network variable to store selected weapon
     private NetworkVariable<FixedString32Bytes> selectedWeapon = new NetworkVariable<FixedString32Bytes>();
-
 
 
     [Header("Dart Settings")]
@@ -61,8 +59,6 @@ public class GameManager : NetworkBehaviour
 
     void Start()
     {
-         //NetworkManager.Singleton.StartHost();
-         //Debug.Log($"IsServer={NetworkManager.Singleton.IsServer}, IsClient={NetworkManager.Singleton.IsClient}, IsHost={NetworkManager.Singleton.IsHost}");
         // Buttons
         if (startButton != null)
         {
@@ -217,11 +213,11 @@ public class GameManager : NetworkBehaviour
 
         if (gunSpawnPoint1 != null)
         {
-GameObject g1 = Instantiate(gunPrefab, gunSpawnPoint1.position, gunSpawnPoint1.rotation);
+		GameObject g1 = Instantiate(gunPrefab, gunSpawnPoint1.position, gunSpawnPoint1.rotation);
         Rigidbody rb1 = g1.GetComponent<Rigidbody>();
         if (rb1 != null)
         {
-            //rb1.isKinematic = true;  // Make gun stop in the air
+            //rb1.isKinematic = true;  // Make gun stop in the air, but it may cause other problems
             rb1.useGravity = false;
             rb1.velocity = Vector3.zero;
             rb1.angularVelocity = Vector3.zero;
@@ -230,14 +226,14 @@ GameObject g1 = Instantiate(gunPrefab, gunSpawnPoint1.position, gunSpawnPoint1.r
         NetworkObject netObj1 = g1.GetComponent<NetworkObject>();
         if (netObj1 != null)
         {
-       //if (!NetworkManager.Singleton.IsServer) return;
+       		//if (!NetworkManager.Singleton.IsServer) return;
             netObj1.Spawn();
         }
                 
         }
         if (gunSpawnPoint2 != null)
         {
-GameObject g2 = Instantiate(gunPrefab, gunSpawnPoint2.position, gunSpawnPoint2.rotation);
+		GameObject g2 = Instantiate(gunPrefab, gunSpawnPoint2.position, gunSpawnPoint2.rotation);
         Rigidbody rb2 = g2.GetComponent<Rigidbody>();
         if (rb2 != null)
         {
@@ -359,9 +355,6 @@ private void ClearWeapons()
         }
     }
 }
-
-
-
     private void StartActualGame()
     {
         //ScoreManager.Instance.ResetScore();

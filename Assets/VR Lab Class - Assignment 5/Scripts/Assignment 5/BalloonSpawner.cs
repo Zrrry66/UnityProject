@@ -27,7 +27,7 @@ public class BalloonSpawner : NetworkBehaviour
 
     private void Start()
     {
-        // Modified: Only start spawning if server
+        // Only start spawning if server
         if (NetworkManager.Singleton.IsServer)
         {
             InvokeRepeating(nameof(SpawnBalloon), 1f, spawnInterval);
@@ -97,7 +97,7 @@ public class BalloonSpawner : NetworkBehaviour
         balloonInstance.transform.rotation = Quaternion.Euler(0, 90, 0);
     }
 
-// Modified: Spawn as network object
+			// Spawn as network object
             NetworkObject netObj = balloonInstance.GetComponent<NetworkObject>();
             if (netObj != null)
             {
@@ -115,7 +115,7 @@ public class BalloonSpawner : NetworkBehaviour
 public void StartSpawning()
 {
     isSpawning = true;
-    CancelInvoke(nameof(SpawnBalloon)); // **防止重复调用**
+    CancelInvoke(nameof(SpawnBalloon)); // Avoid calling repeatedly
     InvokeRepeating(nameof(SpawnBalloon), 1f, spawnInterval);
 }
 }

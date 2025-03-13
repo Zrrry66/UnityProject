@@ -1,24 +1,21 @@
-//this works. need to change to networkvariable
 using UnityEngine;
 using TMPro;
 using Unity.Netcode;
 
 public class CountdownTimer : NetworkBehaviour
 {
-    //public float timeRemaining = 60f;
-    // Modified: change timeRemaining to a network variable with initial value 60f
+    // change timeRemaining to a network variable with initial value 60f
     public NetworkVariable<float> timeRemaining = new NetworkVariable<float>(60f);
     public TextMeshPro timerText; 
-    //public GameObject balloonSpawner;  // 气球生成器
 
     private bool isRunning = false;
-    private GameManager gameManager;   // 引用 GameManager
+    private GameManager gameManager;
 
     private void Start()
     {
-        gameManager = FindObjectOfType<GameManager>(); // 找到 GameManager
+        gameManager = FindObjectOfType<GameManager>(); // Find GameManager
 
-// Subscribe to changes so all clients update UI
+		// Subscribe to changes so all clients update UI
         timeRemaining.OnValueChanged += (oldValue, newValue) => UpdateTimerDisplay();
     }
 
@@ -45,8 +42,8 @@ public class CountdownTimer : NetworkBehaviour
         timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
-    // **开始倒计时（由 GameManager 调用）**
-// Modified: Only server should start timer and update network variable
+
+	// Only server should start timer and update network variable
     public void StartTimer(float gameTime)
     {
         if (IsServer)
@@ -56,86 +53,9 @@ public class CountdownTimer : NetworkBehaviour
         }
     }
 
-    // **停止倒计时**
+    // Stop timer
     public void StopTimer()
     {
         isRunning = false;
     }
 }
-
-
-/*initial version
-using UnityEngine;
-using TMPro;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-
-public class CountdownTimer : MonoBehaviour
-{
-    public float timeRemaining = 60f;
-    public TextMeshPro timerText;
-    public GameObject gameOverPanel;
-    public Button restartButton;
-    public GameObject balloonSpawner;
-
-    private bool isGameOver = false;
-
-    private void Start()
-    {
-        gameOverPanel.SetActive(false);
-        restartButton.onClick.AddListener(RestartGame);
-    }
-    void Update()
-    {
-        if (!isGameOver && timeRemaining > 0)
-        {
-            timeRemaining -= Time.deltaTime;
-            
-            if(timeRemaining < 0)
-            {
-                timeRemaining = 0;
-            }
-            UpdateTimerDisplay();
-        }
-        else if (!isGameOver)
-        {
-            GameOver();
-        }
-    }
-
-    void UpdateTimerDisplay()
-    {
-        int minutes = Mathf.FloorToInt(timeRemaining / 60);
-        int seconds = Mathf.FloorToInt(timeRemaining % 60);
-        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
-    }
-
-    public void GameOver()
-    {
-        isGameOver = true;
-        gameOverPanel.SetActive(true);
-        Debug.Log("Game over! Time ended!");
-
-        Time.timeScale = 0;
-
-        if(balloonSpawner != null)
-        {
-            balloonSpawner.SetActive(false);
-        }
-
-        GameObject[] balloons = GameObject.FindGameObjectsWithTag("Balloon");
-        foreach (GameObject balloon in balloons)
-        {
-            Destroy(balloon);
-        }
-
-    }
-
-    public void RestartGame()
-    {
-        Time.timeScale = 1;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-}
-
-*/

@@ -21,7 +21,7 @@ public class Gun : NetworkBehaviour
     }
     private void Update()
     {
-        if (!GameManager.Instance.IsGameRunning()) return; // 游戏未开始时，不允许射击
+        if (!GameManager.Instance.IsGameRunning()) return; // Only enable shooting when game starts
 
         Debug.Log("Update running...");
 
