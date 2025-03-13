@@ -436,6 +436,13 @@ private void ClearWeapons()
 
         ClearWeapons();
 
+            // Reset all HandCollider states to avoid stale collision data
+    HandCollider[] handColliders = FindObjectsOfType<HandCollider>();
+    foreach (var hc in handColliders)
+    {
+        hc.ResetCollision();
+    }
+
         // **Spawn weapon again**
     if (selectedWeapon.Value == "Gun")
     {
@@ -496,6 +503,13 @@ private void ClearWeapons()
 
         ClearBalloons();
         ClearWeapons();
+
+        // Reset all HandCollider states to avoid stale collision data
+    HandCollider[] handColliders = FindObjectsOfType<HandCollider>();
+    foreach (var hc in handColliders)
+    {
+        hc.ResetCollision();
+    }
         
         // Set start button to be only clickable for Host
         if (!NetworkManager.Singleton.IsHost && startButton != null)

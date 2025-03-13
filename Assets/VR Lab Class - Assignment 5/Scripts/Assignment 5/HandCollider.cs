@@ -42,5 +42,13 @@ public class HandCollider : MonoBehaviour
         }
     }
 
+    public void ResetCollision() 
+    {
+    // Reset collision flags to avoid stale data when an object is destroyed
+    isColliding = false;
+    collidingObject = null;
+    }
+
+
     #endregion
 }
